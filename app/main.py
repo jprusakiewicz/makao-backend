@@ -1,11 +1,11 @@
 from typing import Optional
 
 import uvicorn
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Body, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from starlette.responses import JSONResponse
 
 from app.connection_manager import ConnectionManager
-from app.server_errors import GameNotStarted, PlayerIdAlreadyInUse, NoRoomWithThisId, RoomIdAlreadyInUse, GameIsStarted
+from app.server_errors import PlayerIdAlreadyInUse, NoRoomWithThisId, RoomIdAlreadyInUse, GameIsStarted
 
 app = FastAPI()
 
@@ -104,7 +104,6 @@ async def restart_game(room_id: str):
 @app.websocket("/ws/{room_id}/{client_id}")
 async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str):
     try:
-        print("dupa")
         await manager.connect(websocket, room_id, client_id)
         print(f"new client connected with id: {client_id}")
 
@@ -130,6 +129,23 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str)
     except NoRoomWithThisId:
         print(f"Theres no room with this id: {room_id}")
         await websocket.close(403)
+
+
+@app.websocket("/test/{room_id}/{client_id}")
+async def websocket_endpoint(websocket: WebSocket, room_id, client_id):
+    json_to_send = {"is_game_on": True,
+                    "whos_turn": "1",
+                    "game_data": {"player_hand": ["U+1F0D8", "U+1F0C8", "U+1F0BB", "U+1F0C1"],
+                                  "rest_players": {'left': 4, 'top': 9, 'right': 13},
+                                  "pile": ["U+1F0C7"]}}
+    try:
+        ws = websocket
+        await ws.accept()
+
+        await websocket.send_json(json_to_send)
+
+    except WebSocketDisconnect:
+        print("disconnected")
 
 
 if __name__ == "__main__":

@@ -9,7 +9,7 @@ class Deck:
     def __init__(self, number_of_players: int):
         self.person_turn = 1
         self.stack: List[Card] = self.set_full_deck()
-        self.pile = self.get_nonfunctional_card().code
+        self.pile = [self.get_nonfunctional_card().code]
         self.players = self.get_new_game_cards(number_of_players)
         self.used_cards = []
 
@@ -21,6 +21,74 @@ class Deck:
         for player in self.players:
             if player != player_id:
                 rest_players[player] = len(self.players[player])
+
+        if player_id == '1':
+            try:
+                rest_players['left'] = rest_players['4']
+                del rest_players['4']
+            except KeyError:
+                pass
+            try:
+                rest_players['top'] = rest_players['3']
+                del rest_players['3']
+            except KeyError:
+                pass
+            try:
+                rest_players['right'] = rest_players['2']
+                del rest_players['2']
+            except KeyError:
+                pass
+
+        elif player_id == '2':
+            try:
+                rest_players['left'] = rest_players['1']
+                del rest_players['1']
+            except KeyError:
+                pass
+            try:
+                rest_players['top'] = rest_players['4']
+                del rest_players['4']
+            except KeyError:
+                pass
+            try:
+                rest_players['right'] = rest_players['3']
+                del rest_players['3']
+            except KeyError:
+                pass
+
+        elif player_id == '3':
+            try:
+                rest_players['left'] = rest_players['2']
+                del rest_players['2']
+            except KeyError:
+                pass
+            try:
+                rest_players['top'] = rest_players['1']
+                del rest_players['1']
+            except KeyError:
+                pass
+            try:
+                rest_players['right'] = rest_players['4']
+                del rest_players['4']
+            except KeyError:
+                pass
+
+        if player_id == '4':
+            try:
+                rest_players['left'] = rest_players['3']
+                del rest_players['3']
+            except KeyError:
+                pass
+            try:
+                rest_players['top'] = rest_players['2']
+                del rest_players['2']
+            except KeyError:
+                pass
+            try:
+                rest_players['right'] = rest_players['1']
+                del rest_players['1']
+            except KeyError:
+                pass
 
         return {
             "player_hand": player_hand,
@@ -45,7 +113,7 @@ class Deck:
     def get_new_game_cards(self, number_of_players: int):
         players = {}
         if number_of_players > 4 or number_of_players <= 1:
-            raise ValueError
+            raise ValueError  # todo except this
         for player_id in range(number_of_players):
             player_cards = []
             while len(player_cards) != 4:
@@ -55,14 +123,13 @@ class Deck:
 
     def handle_players_move(self, player_id, picked_cards):
         # self.validate_cards(picked_cards)
-        #self.validate_picked_cards(player_id, picked_cards)
+        # self.validate_picked_cards(player_id, picked_cards)
 
         self.used_cards.extend(picked_cards)
         for card in picked_cards:
             if card in self.players[player_id]:
                 self.players[player_id].remove(card)
         self.pile = picked_cards[-1]
-
 
     @staticmethod
     def set_deck(cards_in_game: List[Card]) -> List[Card]:

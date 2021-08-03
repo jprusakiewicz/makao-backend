@@ -32,7 +32,7 @@ class Room:
     def get_free_player_game_id(self):
         taken_ids = self.get_taken_ids()
         for i in range(1, 4):
-            if i not in taken_ids:
+            if str(i) not in taken_ids:
                 return str(i)
 
     async def remove_connection(self, connection_with_given_ws):
@@ -75,6 +75,7 @@ class Room:
             player = next(
                 connection.player for connection in self.active_connections if connection.player.id == client_id)
             game_state = {
+                # "my_id": client_id,
                 "is_game_on": self.is_game_on,
                 "whos_turn": self.whos_turn,
                 "game_data": self.deck.get_current_state(player.game_id),

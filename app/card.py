@@ -38,7 +38,7 @@ class Card:
 
     @staticmethod
     def get_code(figure: Figure, color: Color) -> str:
-        code = "U+F0"
+        code = "U+1F0"
 
         if color is Color.Spades:
             code += "A"

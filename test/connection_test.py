@@ -1,7 +1,7 @@
 import unittest
 
-from starlette import websockets
 from fastapi.testclient import TestClient
+from starlette import websockets
 
 from app.main import app
 
@@ -54,7 +54,6 @@ class ConnectionManagerTest(unittest.TestCase):
             _ = websocket1.receive_json()
 
             with client.websocket_connect(f"/ws/{test_room_id}/{test_client_two_id}") as websocket2:
-
                 data21 = websocket2.receive_json()
                 data11 = websocket1.receive_json()
 
@@ -62,7 +61,6 @@ class ConnectionManagerTest(unittest.TestCase):
                 websocket1.send_json({"picked_cards": [data11['game_data']['player_hand'][0]]})
                 data12 = websocket1.receive_json()
                 data22 = websocket2.receive_json()
-
 
         # then
         self.assertEqual(data12["game_data"]["pile"], data11['game_data']['player_hand'][0])
@@ -84,7 +82,6 @@ class ConnectionManagerTest(unittest.TestCase):
             _ = websocket1.receive_json()
 
             with client.websocket_connect(f"/ws/{test_room_id}/{test_client_two_id}") as websocket2:
-
                 data21 = websocket2.receive_json()
                 data12 = websocket1.receive_json()
 
@@ -92,7 +89,6 @@ class ConnectionManagerTest(unittest.TestCase):
                 websocket1.send_json({"picked_cards": ["U+F0A1"]})
                 data12 = websocket1.receive_json()
                 data22 = websocket2.receive_json()
-
 
         # then
         self.assertEqual(data22["game_data"]["pile"], "U+F0A1")
@@ -136,9 +132,8 @@ class ConnectionManagerTest(unittest.TestCase):
                     data = websocket.receive_json()
         except Exception as e:
             exception = e
-    # then
+        # then
         self.assertEqual(exception.__class__.__name__, websockets.WebSocketDisconnect(403).__class__.__name__)
-
 
     if __name__ == '__main__':
         unittest.main()
