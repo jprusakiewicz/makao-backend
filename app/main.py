@@ -110,6 +110,7 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str)
         try:
             while True:
                 message = await websocket.receive()
+                print(message)
                 await manager.handle_ws_message(message, room_id, client_id)
         except WebSocketDisconnect:
             print("disconnected")
@@ -134,7 +135,7 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str)
 @app.websocket("/test/{room_id}/{client_id}")
 async def websocket_endpoint(websocket: WebSocket, room_id, client_id):
     json_to_send = {"is_game_on": True,
-                    "whos_turn": "1",
+                    "whos_turn": "left",
                     "game_data": {"player_hand": ["U+1F0D8", "U+1F0C8", "U+1F0BB", "U+1F0C1"],
                                   "rest_players": {'left': 4, 'top': 9, 'right': 13},
                                   "pile": ["U+1F0C7"]}}
@@ -149,4 +150,4 @@ async def websocket_endpoint(websocket: WebSocket, room_id, client_id):
 
 
 if __name__ == "__main__":
-    uvicorn.run(app, host="0.0.0.0", port=80, workers=1)
+    uvicorn.run(app, host="0.0.0.0", port=5000, workers=1)

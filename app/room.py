@@ -17,10 +17,10 @@ class Room:
         self.MAX_PLAYERS = 4
 
     async def append_connection(self, connection):
-        if len(self.active_connections) < self.MAX_PLAYERS and self.is_game_on is False:
+        if len(self.active_connections) <= self.MAX_PLAYERS and self.is_game_on is False:
             connection.player.game_id = self.get_free_player_game_id()  # todo here
             self.active_connections.append(connection)
-            if len(self.active_connections) > 1:  # todo change to 4
+            if len(self.active_connections) == 4:
                 await self.start_game()
         else:
             raise GameIsStarted
@@ -31,7 +31,7 @@ class Room:
 
     def get_free_player_game_id(self):
         taken_ids = self.get_taken_ids()
-        for i in range(1, 4):
+        for i in range(1, 5):
             if str(i) not in taken_ids:
                 return str(i)
 
@@ -65,7 +65,7 @@ class Room:
         self.next_person_move()
 
     def next_person_move(self):
-        if int(self.whos_turn) > len(self.get_taken_ids()):
+        if int(self.whos_turn) >= len(self.get_taken_ids()): #todo does it work?
             self.whos_turn = str(1)
         else:
             self.whos_turn = str(int(self.whos_turn) + 1)
@@ -77,7 +77,7 @@ class Room:
             game_state = {
                 # "my_id": client_id,
                 "is_game_on": self.is_game_on,
-                "whos_turn": self.whos_turn,
+                "whos_turn": self.game_id_to_direction(player.game_id, str(self.whos_turn)),
                 "game_data": self.deck.get_current_state(player.game_id),
             }
         else:
@@ -96,3 +96,38 @@ class Room:
                 "whos turn": self.whos_turn,
                 "number_of_connected_players": len(self.active_connections),
                 "pile": self.deck.pile}
+
+    def game_id_to_direction(self, player_id: str, whos_turn: str):
+        direction = ""
+        if player_id == whos_turn:
+            direction = "player"
+
+        elif player_id == '1':
+            if whos_turn == "4":
+                direction = "right"
+            elif whos_turn == "3":
+                direction = "top"
+            elif whos_turn == "2":
+                direction = "left"
+        elif player_id == '2':
+            if whos_turn == "4":
+                direction = "top"
+            elif whos_turn == "3":
+                direction = "left"
+            elif whos_turn == "1":
+                direction = "right"
+        elif player_id == '3':
+            if whos_turn == "4":
+                direction = "left"
+            if whos_turn == "2":
+                direction = "right"
+            if whos_turn == "1":
+                direction = "top"
+        elif player_id == '4':
+            if whos_turn == "3":
+                direction = "right"
+            if whos_turn == "2":
+                direction = "top"
+            if whos_turn == "1":
+                direction = "left"
+        return direction

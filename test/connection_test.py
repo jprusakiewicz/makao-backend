@@ -48,7 +48,7 @@ class ConnectionManagerTest(unittest.TestCase):
         test_room_id = 1
         expected_game_state = True
         expected_game_data = ["U+F0A1"]
-        expected_whos_turn = "2"
+        expected_whos_turn = "left"
         # when
         with client.websocket_connect(f"/ws/{test_room_id}/{test_client_one_id}") as websocket1:
             _ = websocket1.receive_json()
@@ -57,7 +57,7 @@ class ConnectionManagerTest(unittest.TestCase):
                 data21 = websocket2.receive_json()
                 data11 = websocket1.receive_json()
 
-                assert data21['whos_turn'] == '1'
+                assert data21['whos_turn'] == 'right'
                 websocket1.send_json({"picked_cards": [data11['game_data']['player_hand'][0]]})
                 data12 = websocket1.receive_json()
                 data22 = websocket2.receive_json()

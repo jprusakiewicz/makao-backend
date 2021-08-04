@@ -9,7 +9,7 @@ class Deck:
     def __init__(self, number_of_players: int):
         self.person_turn = 1
         self.stack: List[Card] = self.set_full_deck()
-        self.pile = [self.get_nonfunctional_card().code]
+        self.pile: List[str] = [self.get_nonfunctional_card().code]
         self.players = self.get_new_game_cards(number_of_players)
         self.used_cards = []
 
@@ -129,7 +129,7 @@ class Deck:
         for card in picked_cards:
             if card in self.players[player_id]:
                 self.players[player_id].remove(card)
-        self.pile = picked_cards[-1]
+        self.pile = [picked_cards[-1]]
 
     @staticmethod
     def set_deck(cards_in_game: List[Card]) -> List[Card]:
