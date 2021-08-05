@@ -75,10 +75,10 @@ class Room:
             player = next(
                 connection.player for connection in self.active_connections if connection.player.id == client_id)
             game_state = {
-                # "my_id": client_id,
                 "is_game_on": self.is_game_on,
                 "whos_turn": self.game_id_to_direction(player.game_id, str(self.whos_turn)),
                 "game_data": self.deck.get_current_state(player.game_id),
+                "nicks": self.get_nicks(client_id)
             }
         else:
             game_state = {
@@ -97,37 +97,44 @@ class Room:
                 "number_of_connected_players": len(self.active_connections),
                 "pile": self.deck.pile}
 
-    def game_id_to_direction(self, player_id: str, whos_turn: str):
+    def game_id_to_direction(self, player_id: str, enemy_id: str):
         direction = ""
-        if player_id == whos_turn:
+        if player_id == enemy_id:
             direction = "player"
 
         elif player_id == '1':
-            if whos_turn == "4":
+            if enemy_id == "4":
                 direction = "right"
-            elif whos_turn == "3":
+            elif enemy_id == "3":
                 direction = "top"
-            elif whos_turn == "2":
+            elif enemy_id == "2":
                 direction = "left"
         elif player_id == '2':
-            if whos_turn == "4":
+            if enemy_id == "4":
                 direction = "top"
-            elif whos_turn == "3":
+            elif enemy_id == "3":
                 direction = "left"
-            elif whos_turn == "1":
+            elif enemy_id == "1":
                 direction = "right"
         elif player_id == '3':
-            if whos_turn == "4":
+            if enemy_id == "4":
                 direction = "left"
-            if whos_turn == "2":
+            if enemy_id == "2":
                 direction = "right"
-            if whos_turn == "1":
+            if enemy_id == "1":
                 direction = "top"
         elif player_id == '4':
-            if whos_turn == "3":
+            if enemy_id == "3":
                 direction = "right"
-            if whos_turn == "2":
+            if enemy_id == "2":
                 direction = "top"
-            if whos_turn == "1":
+            if enemy_id == "1":
                 direction = "left"
         return direction
+
+    def get_nicks(self, player_id):
+        nicks = {}
+        for connection in self.active_connections:
+            enemy_direction = self.game_id_to_direction(player_id, connection.player.game_id)
+            nicks[enemy_direction] = connection.player.nick
+        return nicks

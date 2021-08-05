@@ -102,9 +102,9 @@ async def restart_game(room_id: str):
 
 
 @app.websocket("/ws/{room_id}/{client_id}")
-async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str):
+async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str, nick: Optional[str] = "Marcin"):
     try:
-        await manager.connect(websocket, room_id, client_id)
+        await manager.connect(websocket, room_id, client_id, nick=nick)
         print(f"new client connected with id: {client_id}")
 
         try:
