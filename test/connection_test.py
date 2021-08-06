@@ -1,7 +1,7 @@
+import json
 import unittest
 
 from fastapi.testclient import TestClient
-from starlette import websockets
 
 from app.main import app
 
@@ -63,7 +63,7 @@ class ConnectionManagerTest(unittest.TestCase):
                 data22 = websocket2.receive_json()
 
         # then
-        self.assertEqual(data12["game_data"]["pile"], data11['game_data']['player_hand'][0])
+        self.assertEqual(data12["game_data"]["pile"][0], data11['game_data']['player_hand'][0])
         self.assertEqual(data12['is_game_on'], expected_game_state)
         self.assertEqual(data12['whos_turn'], expected_whos_turn)
         self.assertEqual(data12['game_data']['player_hand'], data12['game_data']['player_hand'][0:])

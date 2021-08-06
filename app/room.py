@@ -4,7 +4,7 @@ from typing import List, Union
 
 from .connection import Connection
 from .deck import Deck
-from .server_errors import GameIsStarted
+from .server_errors import GameIsStarted, ItsNotYourTurn
 
 
 class Room:
@@ -15,12 +15,13 @@ class Room:
         self.deck: Union[None, Deck] = None
         self.whos_turn: int = 0
         self.MAX_PLAYERS = 4
+        self.MIN_PLAYERS = 4
 
     async def append_connection(self, connection):
         if len(self.active_connections) <= self.MAX_PLAYERS and self.is_game_on is False:
             connection.player.game_id = self.get_free_player_game_id()  # todo here
             self.active_connections.append(connection)
-            if len(self.active_connections) == 4:
+            if len(self.active_connections) >= self.MIN_PLAYERS:
                 await self.start_game()
         else:
             raise GameIsStarted
@@ -60,12 +61,24 @@ class Room:
         self.deck = None
         await self.broadcast_json()
 
-    def handle_players_move(self, player_id, picked_cards):
-        self.deck.handle_players_move(player_id, picked_cards)
-        self.next_person_move()
+    def handle_players_move(self, client_id, player_move):
+        next_persom_move = False
+        player = next(
+            connection.player for connection in self.active_connections if connection.player.id == client_id)
+        self.validate_players_turn(player.game_id)
+
+        if 'picked_cards' in player_move:
+            picked_cards = player_move['picked_cards']
+            next_persom_move = self.deck.handle_players_cars_move(player.game_id, picked_cards)
+        elif 'other_move' in player_move:
+            other_move = player_move['other_move']
+            next_persom_move = self.deck.handle_players_other_move(player.game_id, other_move)
+
+        if next_persom_move:
+            self.next_person_move()
 
     def next_person_move(self):
-        if int(self.whos_turn) >= len(self.get_taken_ids()): #todo does it work?
+        if int(self.whos_turn) >= len(self.get_taken_ids()):  # todo does it work?
             self.whos_turn = str(1)
         else:
             self.whos_turn = str(int(self.whos_turn) + 1)
@@ -88,8 +101,7 @@ class Room:
         return json.dumps(game_state)
 
     def draw_random_player_id(self):
-        return random.choice(
-            [connection.player.id for connection in self.active_connections])
+        return random.choice(self.get_taken_ids())
 
     def get_stats(self):
         return {"is_game_on": self.is_game_on,
@@ -138,3 +150,7 @@ class Room:
             enemy_direction = self.game_id_to_direction(player_id, connection.player.game_id)
             nicks[enemy_direction] = connection.player.nick
         return nicks
+
+    def validate_players_turn(self, player_id):
+        if player_id != self.whos_turn:
+            raise ItsNotYourTurn

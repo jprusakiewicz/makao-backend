@@ -26,3 +26,8 @@ class RoomIdAlreadyInUse(WsServerError):
 class GameIsStarted(WsServerError):
     def __init__(self):
         self.message = 'The game is on'
+
+
+class ItsNotYourTurn(WsServerError):
+    def __init__(self):
+        self.message = 'Its not your turn!'

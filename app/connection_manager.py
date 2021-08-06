@@ -5,7 +5,7 @@ from starlette.websockets import WebSocket
 from app.connection import Connection
 from app.player import Player
 from app.room import Room
-from app.server_errors import PlayerIdAlreadyInUse, NoRoomWithThisId, RoomIdAlreadyInUse
+from app.server_errors import PlayerIdAlreadyInUse, NoRoomWithThisId, RoomIdAlreadyInUse, ItsNotYourTurn
 
 
 class ConnectionManager:
@@ -56,15 +56,22 @@ class ConnectionManager:
             await connection.ws.send_text(room.get_game_state(connection.player.id))
 
     async def handle_ws_message(self, message, room_id, client_id):
-        room = self.get_room(room_id)
         try:
-            if client_id == room.whos_turn:
-                t = json.loads(message["text"])
-                picked_cards = t['picked_cards']
-                room.handle_players_move(client_id, picked_cards)
-                await self.broadcast(room_id)
-        except KeyError as e:
+            print(message)
+            players_move = json.loads(message["text"])
+            room = self.get_room(room_id)
+            room.handle_players_move(client_id, players_move)
+        except KeyError:
+            pass
+            # if message['code'] == 1000
+        except ItsNotYourTurn as e:
+            # send message to this player
             print(e)
+        # except YouDontHaveThisCardOnYourHand as e:
+        #     ...
+        # except YouCantMakeThisMove as e:
+        #     ...
+        await self.broadcast(room_id)
 
     def get_active_connection(self, websocket: WebSocket):
         for r in self.rooms:

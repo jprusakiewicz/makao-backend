@@ -10,7 +10,7 @@ class Deck:
         self.person_turn = 1
         self.stack: List[Card] = self.set_full_deck()
         self.pile: List[str] = [self.get_nonfunctional_card().code]
-        self.players = self.get_new_game_cards(number_of_players)
+        self.players: dict = self.get_new_game_cards(number_of_players)
         self.used_cards = []
 
     def get_current_state(self, player_id):
@@ -121,15 +121,23 @@ class Deck:
             players[str(player_id + 1)] = player_cards
         return players  # todo
 
-    def handle_players_move(self, player_id, picked_cards):
-        # self.validate_cards(picked_cards)
-        # self.validate_picked_cards(player_id, picked_cards)
+    def handle_players_cars_move(self, player_id, picked_cards: List[str]):
+        if self.is_card_in_players_hand(player_id, picked_cards) and \
+                self.can_put_on_pile(player_id, picked_cards):
+            self.used_cards.extend(picked_cards)
+            self.remove_cards_from_players_hand(player_id, picked_cards)
+            picked_cards.reverse()  # todo
+            self.pile = picked_cards
 
-        self.used_cards.extend(picked_cards)
-        for card in picked_cards:
-            if card in self.players[player_id]:
-                self.players[player_id].remove(card)
-        self.pile = [picked_cards[-1]]
+            return True
+
+    def handle_players_other_move(self, player_id, other_move: dict):
+        type = other_move['type']
+        if type == "pick_new_card":
+            self.pick_new_card(player_id)
+
+        elif type == "skip":
+            return True
 
     @staticmethod
     def set_deck(cards_in_game: List[Card]) -> List[Card]:
@@ -149,3 +157,23 @@ class Deck:
         while Card.is_functional(self.stack[-1]):
             self.shuffle_deck()
         return self.get_card()
+
+    def get_player(self, _id: str):
+        return self.players[_id]
+
+    def is_card_in_players_hand(self, player_id: str, picked_cards: List[str]):
+        for card in picked_cards:
+            if card not in self.get_player(player_id):
+                return False
+        return True
+
+    def can_put_on_pile(self, player_id, picked_cards):
+        return True
+
+    def remove_cards_from_players_hand(self, player_id, picked_cards):
+        for card in picked_cards:
+            # if card in self.players[player_id]:
+            self.players[player_id].remove(card)
+
+    def pick_new_card(self, player_id):
+        self.players[player_id].append(self.get_card().code)
