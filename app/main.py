@@ -101,6 +101,15 @@ async def restart_game(room_id: str):
     )
 
 
+@app.post("/game/kick_player/{room_id}/{player_id}")
+async def kick_player(room_id: str, player_id: str):
+    await manager.kick_player(room_id, player_id)
+    return JSONResponse(
+        status_code=200,
+        content={"detail": "success"}
+    )
+
+
 @app.websocket("/ws/{room_id}/{client_id}")
 async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str, nick: Optional[str] = "Marcin"):
     try:

@@ -1,5 +1,6 @@
 import json
 import random
+import uuid
 from typing import List, Union
 
 from .connection import Connection
@@ -16,6 +17,7 @@ class Room:
         self.whos_turn: int = 0
         self.MAX_PLAYERS = 4
         self.MIN_PLAYERS = 4
+        self.game_id: str
 
     async def append_connection(self, connection):
         if len(self.active_connections) <= self.MAX_PLAYERS and self.is_game_on is False:
@@ -29,6 +31,16 @@ class Room:
     def get_taken_ids(self):
         taken_ids = [connection.player.game_id for connection in self.active_connections]
         return taken_ids
+
+    def get_players_in_game(self):
+        players = [connection.player for connection in self.active_connections if
+                   connection.player.in_game]
+        return players
+
+    def get_players_game_ids_in_game(self):
+        players = [connection.player.game_id for connection in self.active_connections if
+                   connection.player.in_game]
+        return players
 
     def get_free_player_game_id(self):
         taken_ids = self.get_taken_ids()
@@ -53,13 +65,42 @@ class Room:
         self.is_game_on = True
         self.whos_turn = self.draw_random_player_id()  # todo
         self.deck = Deck(len(self.active_connections))
+        self.put_all_players_in_game()
+        self.game_id = str(uuid.uuid4().hex)
         await self.broadcast_json()
 
     async def end_game(self):
         self.is_game_on = False
         self.whos_turn = 0
         self.deck = None
+        self.put_all_players_out_of_game()
         await self.broadcast_json()
+
+    async def remove_player_by_game_id(self, game_id):
+        player = next(
+            connection.player for connection in self.active_connections if connection.player.game_id == game_id)
+        player.in_game = False
+        if self.whos_turn == player.game_id:
+            self.next_person_move()
+        await self.broadcast_json()
+
+    async def remove_player_by_id(self, game_id):
+        player = next(
+            connection.player for connection in self.active_connections if connection.player.id == game_id)
+        if self.whos_turn == player.game_id:
+            self.next_person_move()
+        player.in_game = False
+        self.deck.remove_players_cards(player.game_id)
+        print(f"kicked player {player.id}")
+        await self.broadcast_json()
+
+    def put_all_players_in_game(self):
+        for connection in self.active_connections:
+            connection.player.in_game = True
+
+    def put_all_players_out_of_game(self):
+        for connection in self.active_connections:
+            connection.player.in_game = False
 
     def handle_players_move(self, client_id, player_move):
         next_persom_move = False
@@ -78,10 +119,16 @@ class Room:
             self.next_person_move()
 
     def next_person_move(self):
-        if int(self.whos_turn) >= len(self.get_taken_ids()):  # todo does it work?
-            self.whos_turn = str(1)
-        else:
-            self.whos_turn = str(int(self.whos_turn) + 1)
+        active_players_ids = self.get_players_game_ids_in_game()
+        current_idx = active_players_ids.index(self.whos_turn)
+        #
+        # if current_idx >= len(self.get_players_game_ids_in_game()) - 1:  # todo does it work?
+        #     self.whos_turn = active_players_ids[0]
+        # else:
+        try:
+            self.whos_turn = active_players_ids[current_idx + 1]
+        except IndexError:
+            self.whos_turn = active_players_ids[0]
 
     def get_game_state(self, client_id) -> str:
         if self.is_game_on:
@@ -154,3 +201,6 @@ class Room:
     def validate_players_turn(self, player_id):
         if player_id != self.whos_turn:
             raise ItsNotYourTurn
+
+    async def kick_player(self, player_id):
+        await self.remove_player_by_id(player_id)

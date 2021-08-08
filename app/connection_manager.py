@@ -37,7 +37,7 @@ class ConnectionManager:
     async def connect(self, websocket: WebSocket, room_id: str, client_id: str, nick: str):
         self.validate_client_id(room_id, client_id)
         await websocket.accept()
-        connection = Connection(ws=websocket, player=Player(player_id=client_id, nick=nick))
+        connection = Connection(ws=websocket, player=Player(player_id=client_id, nick=nick, is_playing=False))
         await self.append_connection(room_id, connection)
         room = self.get_room(room_id)
         await websocket.send_text(room.get_game_state(client_id))
@@ -54,6 +54,10 @@ class ConnectionManager:
         room = self.get_room(room_id)
         for connection in room.active_connections:
             await connection.ws.send_text(room.get_game_state(connection.player.id))
+
+    async def kick_player(self, room_id, player_id):
+        room = self.get_room(room_id)
+        await room.kick_player(player_id)
 
     async def handle_ws_message(self, message, room_id, client_id):
         try:
