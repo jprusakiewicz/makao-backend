@@ -121,24 +121,33 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str,
                 message = await websocket.receive()
                 print(message)
                 await manager.handle_ws_message(message, room_id, client_id)
-        except WebSocketDisconnect:
-            print("disconnected")
-            await manager.disconnect(websocket)
-            await manager.broadcast(room_id)
+
         except RuntimeError as e:
-            await manager.disconnect(websocket)
+            print(e.__class__.__name__)
             print(e)
-            print("runetime error")
+
+        # except Exception as e:
+        #     print(e)
+        #     print(e.__class__.__name__)
+        #     print("disconnected")
+        #     await manager.disconnect(websocket)
+        #     await manager.broadcast(room_id)
+
     except GameIsStarted:
         print(f"Theres already game started")
-        await websocket.close(403)
+        await websocket.close()
+
     except PlayerIdAlreadyInUse:
         print(f"Theres already connection with this client id {client_id}")
-        await websocket.close(403)
+        await websocket.close()
 
     except NoRoomWithThisId:
         print(f"Theres no room with this id: {room_id}")
-        await websocket.close(403)
+        await websocket.close()
+
+    # except Exception as e:
+    #     print(e)
+    #     print("disconnected!")
 
 
 @app.websocket("/test/{room_id}/{client_id}")

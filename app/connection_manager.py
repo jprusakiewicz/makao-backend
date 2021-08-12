@@ -64,8 +64,9 @@ class ConnectionManager:
             print(message)
             players_move = json.loads(message["text"])
             room = self.get_room(room_id)
-            room.handle_players_move(client_id, players_move)
+            await room.handle_players_move(client_id, players_move)
         except KeyError:
+            print("handle message")
             pass
             # if message['code'] == 1000
         except ItsNotYourTurn as e:

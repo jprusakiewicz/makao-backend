@@ -14,6 +14,17 @@ class TestCards(unittest.TestCase):
         self.assertEqual(functional_card.is_functional(), True)
         self.assertEqual(not_functional_card.is_functional(), False)
 
+    def test_building_card_from_code(self):
+        # given
+        code = "U+1F0A1"
+        expected_figure = Figure.Ace
+        expected_color = Color.Spades
+        # when
+        card = Card.from_code(code)
+        # then
+        self.assertEqual(card.color, expected_color)
+        self.assertEqual(card.figure, expected_figure)
+
 
 if __name__ == '__main__':
     unittest.main()
