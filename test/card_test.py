@@ -26,5 +26,7 @@ class TestCards(unittest.TestCase):
         self.assertEqual(card.figure, expected_figure)
 
 
+
+
 if __name__ == '__main__':
     unittest.main()

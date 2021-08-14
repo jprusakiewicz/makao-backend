@@ -131,13 +131,17 @@ class Game:
         can_put = False
         players_card = Card.from_code(picked_card)
         pile_card = Card.from_code(self.pile[0])  # todo 0 or -1
+
+        # króle
         if pile_card.figure == Figure.King and pile_card.color == Color.Spades or pile_card.figure == Figure.King and pile_card.color == Color.Hearts:
             if players_card.figure == Figure.King and players_card.color == Color.Diamonds or players_card.figure == Figure.King and players_card.color == Color.Clubs or self.pick_count == 1:
                 can_put = True
+
         elif self.is_blocked is False or self.is_blocked is True and players_card.figure == Figure.Four:
             if self.pick_count == 1 or players_card.figure == Figure.Two or players_card.figure == Figure.Three:
                 if self.color_call is not None:
                     can_put = self.color_call == players_card.color
+                    self.color_call = None
                 elif players_card.color == pile_card.color or players_card.figure == pile_card.figure \
                         or players_card.figure == Figure.Joker or players_card.figure == Figure.Queen \
                         or pile_card.figure == Figure.Queen or pile_card.figure == Figure.Joker:
@@ -281,4 +285,6 @@ class Game:
         pass
 
     def handle_ace(self, call_color):
-        pass
+        self.color_call = Color(call_color)
+        print("handling ace: ", self.color_call)
+
