@@ -11,6 +11,7 @@ class Game:
         self.can_skip = False
         self.reverse = False
         self.color_call: Union[None, Color] = None
+        self.figure_call: Union[None, Figure] = None
         self.person_turn = 1
         self.is_blocked = False
         self.stack: List[Card] = self.set_full_deck()
@@ -60,9 +61,8 @@ class Game:
                 if card.is_functional_with_call():
                     function: dict = player_move["functional"]
                     if card.figure == Figure.Jack:
-                        call_color = function["call"]["color"]
                         call_figure = function["call"]["figure"]
-                        self.handle_jack(call_color, call_figure)
+                        self.handle_jack(call_figure)
                     elif card.figure == Figure.Ace:
                         call_color = function["call"]["color"]
                         self.handle_ace(call_color)
@@ -142,6 +142,9 @@ class Game:
                 if self.color_call is not None:
                     can_put = self.color_call == players_card.color
                     self.color_call = None
+                elif self.figure_call is not None:
+                    can_put = self.figure_call == players_card.figure
+                    self.figure_call = None
                 elif players_card.color == pile_card.color or players_card.figure == pile_card.figure \
                         or players_card.figure == Figure.Joker or players_card.figure == Figure.Queen \
                         or pile_card.figure == Figure.Queen or pile_card.figure == Figure.Joker:
@@ -278,8 +281,9 @@ class Game:
             self.pick_count = 1
             self.can_skip = True
 
-    def handle_jack(self, call_color, call_figure):
-        pass
+    def handle_jack(self, call_figure):
+        self.figure_call = Figure(call_figure)
+        print("handling jack: ", self.figure_call)
 
     def handle_joker(self, joker_figure, joker_color):
         pass
@@ -288,3 +292,8 @@ class Game:
         self.color_call = Color(call_color)
         print("handling ace: ", self.color_call)
 
+    def get_call(self):
+        if self.color_call:
+            return self.color_call.__str__()
+        elif self.figure_call:
+            return self.figure_call.__str__()

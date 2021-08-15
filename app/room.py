@@ -99,7 +99,6 @@ class Room:
                 self.next_person_move()
             player.in_game = False
             print(f"kicked player {player.id}")
-            # await self.broadcast_json()
 
     def put_all_players_in_game(self):
         for connection in self.active_connections:
@@ -127,10 +126,7 @@ class Room:
     def next_person_move(self):
         active_players_ids = self.get_players_game_ids_in_game()
         current_idx = active_players_ids.index(self.whos_turn)
-        #
-        # if current_idx >= len(self.get_players_game_ids_in_game()) - 1:  # todo does it work?
-        #     self.whos_turn = active_players_ids[0]
-        # else:
+
         if self.game.reverse is True:
             try:
                 self.whos_turn = active_players_ids[current_idx - 1]
@@ -143,32 +139,29 @@ class Room:
                 self.whos_turn = active_players_ids[0]
         self.game.reset_parameters()
 
-
     def get_game_state(self, client_id) -> str:
         if self.is_game_on:
             player = next(
                 connection.player for connection in self.active_connections if connection.player.id == client_id)
-            game_state = {
-                "is_game_on": self.is_game_on,
-                "whos_turn": self.game_id_to_direction(player.game_id, str(self.whos_turn)),
-                "game_data": self.game.get_current_state(player.game_id),
-                "nicks": self.get_nicks(client_id)
-            }
+            game_state = dict(is_game_on=self.is_game_on,
+                              whos_turn=self.game_id_to_direction(player.game_id, str(self.whos_turn)),
+                              game_data=self.game.get_current_state(player.game_id), nicks=self.get_nicks(client_id),
+                              call=self.game.get_call())
         else:
-            game_state = {
-                "is_game_on": self.is_game_on
-            }
+            game_state = dict(is_game_on=self.is_game_on, nicks=self.get_nicks(client_id))
 
         return json.dumps(game_state)
 
     def draw_random_player_id(self):
         return random.choice(self.get_taken_ids())
 
+    @property
     def get_stats(self):
-        return {"is_game_on": self.is_game_on,
+        return {'is_game_on': self.is_game_on,
                 "whos turn": self.whos_turn,
                 "number_of_connected_players": len(self.active_connections),
-                "pile": self.game.pile}
+                "pile": self.game.pile,
+                "call": self.game.get_call()}
 
     def game_id_to_direction(self, player_id: str, enemy_id: str):
         direction = ""
@@ -224,4 +217,3 @@ class Room:
             print(f"player {player.id} has ended")
             self.winners.append(player.id)
             await self.remove_player_by_game_id(player.game_id)
-

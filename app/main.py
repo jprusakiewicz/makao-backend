@@ -156,7 +156,8 @@ async def websocket_endpoint(websocket: WebSocket, room_id, client_id):
                     "whos_turn": "left",
                     "game_data": {"player_hand": ["U+1F0D8", "U+1F0C8", "U+1F0BB", "U+1F0C1"],
                                   "rest_players": {'left': 4, 'top': 9, 'right': 13},
-                                  "pile": ["U+1F0C7"]}}
+                                  "pile": ["U+1F0C7"]}
+                    }
     try:
         ws = websocket
         await ws.accept()

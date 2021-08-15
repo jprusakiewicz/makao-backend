@@ -39,8 +39,7 @@ class ConnectionManager:
         await websocket.accept()
         connection = Connection(ws=websocket, player=Player(player_id=client_id, nick=nick, is_playing=False))
         await self.append_connection(room_id, connection)
-        room = self.get_room(room_id)
-        await websocket.send_text(room.get_game_state(client_id))
+        await self.broadcast(room_id)
 
     async def append_connection(self, room_id, connection):
         room = self.get_room(room_id)
@@ -91,7 +90,7 @@ class ConnectionManager:
 
     def get_room_stats(self, room_id):
         room = self.get_room(room_id)
-        return room.get_stats()
+        return room.get_stats
 
     def get_overall_stats(self):
         return {'rooms_count': len(self.rooms),
