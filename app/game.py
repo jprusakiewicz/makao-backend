@@ -49,27 +49,23 @@ class Game:
     def handle_players_cards_move(self, player_id, player_move: dict):
         picked_cards: List[str] = player_move['picked_cards']
 
-        if self.is_card_in_players_hand(player_id, picked_cards) \
-                and self.can_put_on_pile(picked_cards[0]):
-            self.used_cards.extend(picked_cards)
-            self.remove_cards_from_players_hand(player_id, picked_cards)
-            picked_cards.reverse()  # todo
+        if self.is_card_in_players_hand(player_id, picked_cards[0]) \
+                and all([self.can_put_on_pile(card) for card in picked_cards]):
+            self.used_cards.extend(picked_cards[0])
+            self.remove_cards_from_players_hand(player_id, picked_cards[0])
+            # picked_cards.reverse()  # todo
             self.pile = picked_cards
-            card = Card.from_code(picked_cards[0])
+            card = Card.from_code(picked_cards[-1])
 
             if card.is_functional_with_call():
                 if card.is_functional_with_call():
-                    function: dict = player_move["functional"]
+                    function = player_move["functional"]
                     if card.figure == Figure.Jack:
                         call_figure = function["call"]["figure"]
                         self.handle_jack(call_figure)
                     elif card.figure == Figure.Ace:
                         call_color = function["call"]["color"]
                         self.handle_ace(call_color)
-                    elif card.figure == Figure.Joker:
-                        joker_figure = function["joker"]["figure"]
-                        joker_color = function["joker"]["color"]
-                        self.handle_joker(joker_figure, joker_color)
             else:
                 if card.figure == Figure.Two:
                     self.handle_two()
@@ -121,10 +117,9 @@ class Game:
     def get_player(self, _id: str):
         return self.players[_id]
 
-    def is_card_in_players_hand(self, player_id: str, picked_cards: List[str]):
-        for card in picked_cards:
-            if card not in self.get_player(player_id):
-                return False
+    def is_card_in_players_hand(self, player_id: str, picked_card: str):
+        if picked_card not in self.get_player(player_id):
+            return False
         return True
 
     def can_put_on_pile(self, picked_card):
@@ -153,9 +148,8 @@ class Game:
                     print("can not put this card on pile")
         return can_put
 
-    def remove_cards_from_players_hand(self, player_id, picked_cards):
-        for card in picked_cards:
-            self.players[player_id].remove(card)
+    def remove_cards_from_players_hand(self, player_id: str, card: str):
+        self.players[player_id].remove(card)
 
     def pick_new_card(self, player_id):
         try:
@@ -284,9 +278,6 @@ class Game:
     def handle_jack(self, call_figure):
         self.figure_call = Figure(call_figure)
         print("handling jack: ", self.figure_call)
-
-    def handle_joker(self, joker_figure, joker_color):
-        pass
 
     def handle_ace(self, call_color):
         self.color_call = Color(call_color)

@@ -28,7 +28,7 @@ class Figure(Enum):
 FUNCTIONAL_FIGURES = [Figure.Ace, Figure.Two, Figure.Three, Figure.Four, Figure.Jack, Figure.Queen, Figure.Joker,
                       Figure.King]
 
-FUNCTIONAL_FIGURES_WITH_CALL = [Figure.Ace, Figure.Jack, Figure.Joker]
+FUNCTIONAL_FIGURES_WITH_CALL = [Figure.Ace, Figure.Jack]
 
 
 class Card:
