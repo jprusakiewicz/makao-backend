@@ -3,6 +3,7 @@ from typing import Optional
 import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from starlette.responses import JSONResponse
+from websockets import ConnectionClosedOK
 
 from app.connection_manager import ConnectionManager
 from app.server_errors import PlayerIdAlreadyInUse, NoRoomWithThisId, RoomIdAlreadyInUse, GameIsStarted
@@ -122,16 +123,19 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str,
                 print(message)
                 await manager.handle_ws_message(message, room_id, client_id)
 
+
+        # await manager.kick_player(room_id, client_id)
+
         except RuntimeError as e:
             print(e.__class__.__name__)
             print(e)
 
-        # except Exception as e:
-        #     print(e)
-        #     print(e.__class__.__name__)
-        #     print("disconnected")
-        #     await manager.disconnect(websocket)
-        #     await manager.broadcast(room_id)
+        except Exception as e:
+            print(e)
+            print(e.__class__.__name__)
+            print("disconnected")
+            await manager.disconnect(websocket)
+            await manager.broadcast(room_id)
 
     except GameIsStarted:
         print(f"Theres already game started")
@@ -144,6 +148,11 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str,
     except NoRoomWithThisId:
         print(f"Theres no room with this id: {room_id}")
         await websocket.close()
+
+    except ConnectionClosedOK:
+        await manager.kick_player(room_id, client_id)
+        print(f"ConnectionClosedOK {client_id}")
+        await manager.broadcast(room_id)
 
     # except Exception as e:
     #     print(e)

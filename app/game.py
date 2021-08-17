@@ -53,9 +53,9 @@ class Game:
                 and all([self.can_put_on_pile(card) for card in picked_cards]):
             self.used_cards.extend(picked_cards[0])
             self.remove_cards_from_players_hand(player_id, picked_cards[0])
-            # picked_cards.reverse()  # todo
+            picked_cards.reverse()  # todo
             self.pile = picked_cards
-            card = Card.from_code(picked_cards[-1])
+            card = Card.from_code(picked_cards[0])
 
             if card.is_functional_with_call():
                 if card.is_functional_with_call():
@@ -122,18 +122,21 @@ class Game:
             return False
         return True
 
-    def can_put_on_pile(self, picked_card):
+    def can_put_on_pile(self, picked_card: str) -> bool:
         can_put = False
         players_card = Card.from_code(picked_card)
-        pile_card = Card.from_code(self.pile[0])  # todo 0 or -1
+        pile_card = Card.from_code(self.pile[-1])  # todo 0 or -1
 
         # króle
-        if pile_card.figure == Figure.King and pile_card.color == Color.Spades or pile_card.figure == Figure.King and pile_card.color == Color.Hearts:
-            if players_card.figure == Figure.King and players_card.color == Color.Diamonds or players_card.figure == Figure.King and players_card.color == Color.Clubs or self.pick_count == 1:
+        if pile_card.figure == Figure.King and pile_card.color == Color.Spades \
+                or pile_card.figure == Figure.King and pile_card.color == Color.Hearts:
+            if players_card.figure == Figure.King and players_card.color == Color.Diamonds \
+                    or players_card.figure == Figure.King and players_card.color == Color.Clubs \
+                    or self.pick_count == 1:
                 can_put = True
 
         elif self.is_blocked is False or self.is_blocked is True and players_card.figure == Figure.Four:
-            if self.pick_count == 1 or players_card.figure == Figure.Two or players_card.figure == Figure.Three:
+            if self.pick_count == 1 or players_card.figure == Figure.Two or players_card.figure == Figure.Three or pile_card.figure == Figure.Joker:
                 if self.color_call is not None:
                     can_put = self.color_call == players_card.color
                     self.color_call = None

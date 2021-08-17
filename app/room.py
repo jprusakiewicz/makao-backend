@@ -33,10 +33,10 @@ class Room:
         taken_ids = [connection.player.game_id for connection in self.active_connections]
         return taken_ids
 
-    def get_players_in_game(self):
-        players = [connection.player for connection in self.active_connections if
-                   connection.player.in_game]
-        return players
+    def get_player(self, id):
+        player = next(
+            connection.player for connection in self.active_connections if connection.player.id == id)
+        return player
 
     def get_players_game_ids_in_game(self):
         players = [connection.player.game_id for connection in self.active_connections if
@@ -93,7 +93,7 @@ class Room:
     async def remove_player_by_id(self, id):
         player = next(
             connection.player for connection in self.active_connections if connection.player.id == id)
-        if self.game:
+        if self.game is not None:
             self.game.remove_players_cards(player.game_id)
             if self.whos_turn == player.game_id:
                 self.next_person_move()

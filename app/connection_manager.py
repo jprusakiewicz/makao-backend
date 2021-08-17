@@ -52,7 +52,10 @@ class ConnectionManager:
     async def broadcast(self, room_id):
         room = self.get_room(room_id)
         for connection in room.active_connections:
-            await connection.ws.send_text(room.get_game_state(connection.player.id))
+            try:
+                await connection.ws.send_text(room.get_game_state(connection.player.id))
+            except RuntimeError:
+                await self.kick_player(room_id, connection.player.id)
 
     async def kick_player(self, room_id, player_id):
         room = self.get_room(room_id)
@@ -105,3 +108,4 @@ class ConnectionManager:
     async def delete_room(self, room_id):
         room = self.get_room(room_id)
         self.rooms.remove(room)
+
