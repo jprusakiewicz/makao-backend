@@ -17,6 +17,7 @@ class Game:
         self.stack: List[Card] = self.set_full_deck()
         self.pile: List[str] = [self.get_nonfunctional_card().code]
         self.players: dict = self.get_new_game_cards(number_of_players)
+        self.makaos: dict = self.set_all_players_makaos_false()
         self.used_cards: List[str] = []
         self.used_cards.extend(self.pile)
 
@@ -31,29 +32,33 @@ class Game:
             card = Card(p[0], p[1])
             cards.append(card)
         cards.remove(
-            next(c for c in cards if c.figure == Figure.Joker and c.color == Color.Spades))  # theres no spades joker
+            next(c for c in cards if c.figure == Figure.Joker and c.color == Color.Spades))
+        cards.remove(
+            next(c for c in cards if c.figure == Figure.Joker and c.color == Color.Clubs))
+        # theres no spades and clubs joker
         shuffle(cards)
         return cards
 
     def get_new_game_cards(self, number_of_players: int):
         players = {}
         if number_of_players > 4 or number_of_players <= 1:
-            raise ValueError  # todo except this
+            raise ValueError
         for player_id in range(number_of_players):
             player_cards = []
             while len(player_cards) != 4:
                 player_cards.append(self.get_card().code)
             players[str(player_id + 1)] = player_cards
-        return players  # todo
+        return players
 
-    def handle_players_cards_move(self, player_id, player_move: dict):
+    def handle_players_cards_move(self, game_id, player_move: dict):
+        self.set_players_makao_false(game_id)
         picked_cards: List[str] = player_move['picked_cards']
 
-        if self.is_card_in_players_hand(player_id, picked_cards[0]) \
+        if self.is_card_in_players_hand(game_id, picked_cards[0]) \
                 and all([self.can_put_on_pile(card) for card in picked_cards]):
             self.used_cards.extend(picked_cards[0])
-            self.remove_cards_from_players_hand(player_id, picked_cards[0])
-            picked_cards.reverse()  # todo
+            self.remove_cards_from_players_hand(game_id, picked_cards[0])
+            picked_cards.reverse()
             self.pile = picked_cards
             card = Card.from_code(picked_cards[0])
 
@@ -77,16 +82,88 @@ class Game:
                     self.handle_king(card.color)
             return True
 
-    def handle_players_other_move(self, player_id, player_move: dict):
+    def handle_players_other_move(self, game_id, player_move: dict):
         other_move = player_move['other_move']
         type = other_move['type']
         if type == "pick_new_card" and self.is_blocked is False:
-            self.pick_new_card(player_id)
+            self.pick_new_card(game_id)
             self.can_skip = True
 
         elif type == "skip" and self.can_skip:
             self.is_blocked = False
             return True
+
+    def get_players_cards(self, game_id):
+        return self.players[game_id]
+
+    def handle_players_makao_call(self, game_id):
+        if len(self.get_players_cards(game_id)) <= 1:
+            self.makaos[game_id] = True
+
+    def set_players_makao_false(self, game_id):
+        self.makaos[game_id] = False
+
+    def handle_makao_move(self, game_id, player_move: dict):
+        makao_type = player_move['makao_move']['type']
+        if makao_type == "makao":
+            self.handle_players_makao_call(game_id)
+            return True
+
+        elif makao_type == "nick_click":
+            direction = player_move['makao_move']['direction']
+            enemy_id = None
+
+            if game_id == '1':
+                if direction == "left":
+                    enemy_id = '4'
+
+                elif direction == "top":
+                    enemy_id = '3'
+
+                elif direction == "right":
+                    enemy_id = '2'
+
+            if game_id == '2':
+                if direction == "left":
+                    enemy_id = '1'
+
+                elif direction == "top":
+                    enemy_id = '4'
+
+                elif direction == "right":
+                    enemy_id = '3'
+
+            if game_id == '3':
+                if direction == "left":
+                    enemy_id = '2'
+
+                elif direction == "top":
+                    enemy_id = '1'
+
+                elif direction == "right":
+                    enemy_id = '4'
+
+            if game_id == '4':
+                if direction == "left":
+                    enemy_id = '3'
+
+                elif direction == "top":
+                    enemy_id = '2'
+
+                elif direction == "right":
+                    enemy_id = '1'
+
+            if enemy_id is not None:
+                self.handle_enemy_makao_call(enemy_id)
+
+    def check_if_should_pick_makao_cards(self, player_id):
+        player_cards = self.players[player_id]
+        if len(player_cards) <= 1 and self.makaos[player_id] is False:
+            return True
+
+    def handle_enemy_makao_call(self, enemy_id):
+        if self.check_if_should_pick_makao_cards(enemy_id):
+            self.pick_makao_card(enemy_id)
 
     @staticmethod
     def set_deck(cards_in_game: List[Card]) -> List[Card]:
@@ -114,18 +191,15 @@ class Game:
         self.used_cards.extend(self.players[game_id])
         self.players[game_id] = []
 
-    def get_player(self, _id: str):
-        return self.players[_id]
-
     def is_card_in_players_hand(self, player_id: str, picked_card: str):
-        if picked_card not in self.get_player(player_id):
+        if picked_card not in self.get_players_cards(player_id):
             return False
         return True
 
     def can_put_on_pile(self, picked_card: str) -> bool:
         can_put = False
         players_card = Card.from_code(picked_card)
-        pile_card = Card.from_code(self.pile[-1])  # todo 0 or -1
+        pile_card = Card.from_code(self.pile[-1])
 
         # króle
         if pile_card.figure == Figure.King and pile_card.color == Color.Spades \
@@ -153,6 +227,13 @@ class Game:
 
     def remove_cards_from_players_hand(self, player_id: str, card: str):
         self.players[player_id].remove(card)
+
+    def pick_makao_card(self, player_id):
+        try:
+            for i in range(5):
+                self.players[player_id].append(self.get_card().code)
+        except IndexError:
+            print("no cards in stack!!!")
 
     def pick_new_card(self, player_id):
         try:
@@ -288,6 +369,12 @@ class Game:
 
     def get_call(self):
         if self.color_call:
-            return self.color_call.__str__()
+            return self.color_call.value
         elif self.figure_call:
-            return self.figure_call.__str__()
+            return self.figure_call.value
+
+    def set_all_players_makaos_false(self):
+        makaos = {}
+        for player_id in range(0, 4):
+            makaos[str(player_id + 1)] = False
+        return makaos

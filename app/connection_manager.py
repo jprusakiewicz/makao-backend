@@ -70,14 +70,9 @@ class ConnectionManager:
         except KeyError:
             print("handle message")
             pass
-            # if message['code'] == 1000
         except ItsNotYourTurn as e:
-            # send message to this player
             print(e)
-        # except YouDontHaveThisCardOnYourHand as e:
-        #     ...
-        # except YouCantMakeThisMove as e:
-        #     ...
+
         await self.broadcast(room_id)
 
     def get_active_connection(self, websocket: WebSocket):

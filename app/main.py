@@ -111,8 +111,8 @@ async def kick_player(room_id: str, player_id: str):
     )
 
 
-@app.websocket("/ws/{room_id}/{client_id}")
-async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str, nick: Optional[str] = "Marcin"):
+@app.websocket("/ws/{room_id}/{client_id}/{nick}")
+async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str, nick: str):
     try:
         await manager.connect(websocket, room_id, client_id, nick=nick)
         print(f"new client connected with id: {client_id}")
@@ -122,9 +122,6 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str,
                 message = await websocket.receive()
                 print(message)
                 await manager.handle_ws_message(message, room_id, client_id)
-
-
-        # await manager.kick_player(room_id, client_id)
 
         except RuntimeError as e:
             print(e.__class__.__name__)
@@ -159,19 +156,23 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str,
     #     print("disconnected!")
 
 
-@app.websocket("/test/{room_id}/{client_id}")
-async def websocket_endpoint(websocket: WebSocket, room_id, client_id):
+@app.websocket("/test")
+async def websocket_endpoint(websocket: WebSocket):
     json_to_send = {"is_game_on": True,
                     "whos_turn": "left",
                     "game_data": {"player_hand": ["U+1F0D8", "U+1F0C8", "U+1F0BB", "U+1F0C1"],
                                   "rest_players": {'left': 4, 'top': 9, 'right': 13},
-                                  "pile": ["U+1F0C7"]}
+                                  "pile": ["U+1F0C7"]}, "nicks": {"right": "marcin"},
+                    'call': "Clubs"
                     }
     try:
         ws = websocket
         await ws.accept()
-
         await websocket.send_json(json_to_send)
+
+        message = await websocket.receive()
+        print(message)
+
 
     except WebSocketDisconnect:
         print("disconnected")

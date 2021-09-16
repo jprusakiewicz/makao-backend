@@ -6,5 +6,6 @@ class Player:
         self.in_game = is_playing
         self.id = player_id
         # self.player_data = player_data
+        self.makao: bool = False
         self.game_id = None
         self.nick: str = nick

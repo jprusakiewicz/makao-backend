@@ -1,7 +1,10 @@
 import json
+import os
 import random
 import uuid
 from typing import List, Union
+
+import requests
 
 from .connection import Connection
 from .game import Game
@@ -43,6 +46,11 @@ class Room:
                    connection.player.in_game]
         return players
 
+    def get_players_in_game_ids(self) -> List[str]:
+        taken_ids = [connection.player.game_id for connection in self.active_connections if
+                     connection.player.in_game == True]
+        return taken_ids
+
     def get_free_player_game_id(self):
         taken_ids = self.get_taken_ids()
         for i in range(1, 5):
@@ -52,7 +60,8 @@ class Room:
     async def remove_connection(self, connection_with_given_ws):
         await self.remove_player_by_id(connection_with_given_ws.player.id)
         self.active_connections.remove(connection_with_given_ws)
-        if len(self.active_connections) <= 1:
+        taken_ids = self.get_players_in_game_ids()
+        if len(taken_ids) <= 1:
             await self.end_game()
 
     async def broadcast_json(self):
@@ -72,6 +81,7 @@ class Room:
         await self.broadcast_json()
 
     async def end_game(self):
+        self.export_score()
         self.is_game_on = False
         self.whos_turn = 0
         self.game = None
@@ -85,10 +95,10 @@ class Room:
 
             self.game.remove_players_cards(player.game_id)
             if self.whos_turn == player.game_id:
-                self.next_person_move()
+                await self.next_person_move()
             player.in_game = False
 
-            # await self.broadcast_json()
+            await self.broadcast_json()
 
     async def remove_player_by_id(self, id):
         player = next(
@@ -96,12 +106,12 @@ class Room:
         if self.game is not None:
             self.game.remove_players_cards(player.game_id)
             if self.whos_turn == player.game_id:
-                self.next_person_move()
+                await self.next_person_move()
             player.in_game = False
             print(f"kicked player {player.id}")
 
     def put_all_players_in_game(self):
-        for connection in self.active_connections:
+        for connection in self.active_connections[:4]:
             connection.player.in_game = True
 
     def put_all_players_out_of_game(self):
@@ -112,32 +122,41 @@ class Room:
         next_person_move = False
         player = next(
             connection.player for connection in self.active_connections if connection.player.id == client_id)
-        self.validate_its_players_turn(player.game_id)
 
-        if 'picked_cards' in player_move:
-            next_person_move = self.game.handle_players_cards_move(player.game_id, player_move)
-            await self.check_and_handle_empty_hand(player)
-        elif 'other_move' in player_move:
-            next_person_move = self.game.handle_players_other_move(player.game_id, player_move)
+        if 'makao_move' in player_move:
+            is_post_makao = self.game.handle_makao_move(player.game_id, player_move)
+            if is_post_makao:
+                await self.check_and_handle_empty_hand(player)
+        else:
+            self.validate_its_players_turn(player.game_id)
 
-        if next_person_move:
-            self.next_person_move()
+            if 'picked_cards' in player_move:
+                next_person_move = self.game.handle_players_cards_move(player.game_id, player_move)
 
-    def next_person_move(self):
+            elif 'other_move' in player_move:
+                next_person_move = self.game.handle_players_other_move(player.game_id, player_move)
+
+            if next_person_move:
+                await self.next_person_move()
+
+    async def next_person_move(self):
         active_players_ids = self.get_players_game_ids_in_game()
         current_idx = active_players_ids.index(self.whos_turn)
-
-        if self.game.reverse is True:
-            try:
-                self.whos_turn = active_players_ids[current_idx - 1]
-            except IndexError:
-                self.whos_turn = active_players_ids[-1]
+        taken_ids = self.get_players_in_game_ids()
+        if len(taken_ids) <= 1:
+            await self.end_game()
         else:
-            try:
-                self.whos_turn = active_players_ids[current_idx + 1]
-            except IndexError:
-                self.whos_turn = active_players_ids[0]
-        self.game.reset_parameters()
+            if self.game.reverse is True:
+                try:
+                    self.whos_turn = active_players_ids[current_idx - 1]
+                except IndexError:
+                    self.whos_turn = active_players_ids[-1]
+            else:
+                try:
+                    self.whos_turn = active_players_ids[current_idx + 1]
+                except IndexError:
+                    self.whos_turn = active_players_ids[0]
+            self.game.reset_parameters()
 
     def get_game_state(self, client_id) -> str:
         if self.is_game_on:
@@ -145,7 +164,8 @@ class Room:
                 connection.player for connection in self.active_connections if connection.player.id == client_id)
             game_state = dict(is_game_on=self.is_game_on,
                               whos_turn=self.game_id_to_direction(player.game_id, str(self.whos_turn)),
-                              game_data=self.game.get_current_state(player.game_id), nicks=self.get_nicks(client_id),
+                              game_data=self.game.get_current_state(player.game_id),
+                              nicks=self.get_nicks(player.game_id),
                               call=self.game.get_call())
         else:
             game_state = dict(is_game_on=self.is_game_on, nicks=self.get_nicks(client_id))
@@ -157,11 +177,16 @@ class Room:
 
     @property
     def get_stats(self):
-        return {'is_game_on': self.is_game_on,
-                "whos turn": self.whos_turn,
-                "number_of_connected_players": len(self.active_connections),
-                "pile": self.game.pile,
-                "call": self.game.get_call()}
+        if self.is_game_on:
+            stats = {'is_game_on': self.is_game_on,
+                     "whos turn": self.whos_turn,
+                     "number_of_connected_players": len(self.active_connections),
+                     "pile": self.game.pile,
+                     "call": self.game.get_call()}
+        else:
+            stats = {'is_game_on': self.is_game_on,
+                     "number_of_connected_players": len(self.active_connections), }
+        return stats
 
     def game_id_to_direction(self, player_id: str, enemy_id: str):
         direction = ""
@@ -217,3 +242,14 @@ class Room:
             print(f"player {player.id} has ended")
             self.winners.append(player.id)
             await self.remove_player_by_game_id(player.game_id)
+
+    def export_score(self):
+        try:
+            result = requests.post(url=os.getenv('EXPORT_RESULTS_URL'), json=dict(roomId=self.id, results=self.winners))
+            if result.status_code == 200:
+                print("export succesfull")
+            else:
+                print("export failed: ", result.text, result.status_code)
+                print(self.winners)
+        except (KeyError, requests.exceptions.MissingSchema):
+            print("failed to get EXPORT_RESULT_URL env var")
