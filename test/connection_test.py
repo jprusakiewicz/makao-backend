@@ -2,6 +2,7 @@ import json
 import unittest
 
 from fastapi.testclient import TestClient
+from starlette import websockets
 
 from app.main import app
 
@@ -16,7 +17,7 @@ class ConnectionManagerTest(unittest.TestCase):
         expected_game_data = []
         expected_whos_turn = 0
         # when
-        with client.websocket_connect(f"/ws/{test_room_id}/{test_client_id}") as websocket:
+        with client.websocket_connect(f"/ws/{test_room_id}/{test_client_id}/nick") as websocket:
             data = websocket.receive_json()
         # then
         self.assertEqual(data['is_game_on'], expected_game_state)
@@ -30,10 +31,10 @@ class ConnectionManagerTest(unittest.TestCase):
         expected_game_state = True
         expected_whos_turn = ['1', '2']
         # when
-        with client.websocket_connect(f"/ws/{test_room_id}/{test_client_one_id}") as websocket:
+        with client.websocket_connect(f"/ws/{test_room_id}/{test_client_one_id}/nick") as websocket:
             _ = websocket.receive_json()
 
-            with client.websocket_connect(f"/ws/{test_room_id}/{test_client_two_id}") as websocket:
+            with client.websocket_connect(f"/ws/{test_room_id}/{test_client_two_id}/nick") as websocket:
                 data = websocket.receive_json()
         # then
         self.assertEqual(data['is_game_on'], expected_game_state)
@@ -50,10 +51,10 @@ class ConnectionManagerTest(unittest.TestCase):
         expected_game_data = ["U+F0A1"]
         expected_whos_turn = "left"
         # when
-        with client.websocket_connect(f"/ws/{test_room_id}/{test_client_one_id}") as websocket1:
+        with client.websocket_connect(f"/ws/{test_room_id}/{test_client_one_id}/nick") as websocket1:
             _ = websocket1.receive_json()
 
-            with client.websocket_connect(f"/ws/{test_room_id}/{test_client_two_id}") as websocket2:
+            with client.websocket_connect(f"/ws/{test_room_id}/{test_client_two_id}/nick") as websocket2:
                 data21 = websocket2.receive_json()
                 data11 = websocket1.receive_json()
 
@@ -78,10 +79,10 @@ class ConnectionManagerTest(unittest.TestCase):
         expected_game_data = ["U+F0A1"]
         expected_whos_turn = "2"
         # when
-        with client.websocket_connect(f"/ws/{test_room_id}/{test_client_one_id}") as websocket1:
+        with client.websocket_connect(f"/ws/{test_room_id}/{test_client_one_id}/nick") as websocket1:
             _ = websocket1.receive_json()
 
-            with client.websocket_connect(f"/ws/{test_room_id}/{test_client_two_id}") as websocket2:
+            with client.websocket_connect(f"/ws/{test_room_id}/{test_client_two_id}/nick") as websocket2:
                 data21 = websocket2.receive_json()
                 data12 = websocket1.receive_json()
 
@@ -102,15 +103,16 @@ class ConnectionManagerTest(unittest.TestCase):
     def test_reconnect(self):
         client = TestClient(app)
         test_client_id = 1
+        test_room_id = 1
         expected_game_state = False
         expected_game_data = ''
         expected_whos_turn = 0
         # when
 
-        with client.websocket_connect(f"/ws/{test_client_id}") as websocket:
+        with client.websocket_connect(f"/ws/{test_room_id}/{test_client_id}/nick") as websocket:
             _ = websocket.receive_json()
 
-        with client.websocket_connect(f"/ws/{test_client_id}") as websocket:
+        with client.websocket_connect(f"/ws/{test_room_id}/{test_client_id}/nick") as websocket:
             data = websocket.receive_json()
         # then
         self.assertEqual(data['is_game_on'], expected_game_state)
