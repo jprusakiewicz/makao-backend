@@ -33,7 +33,7 @@ FUNCTIONAL_FIGURES_WITH_CALL = [Figure.Ace, Figure.Jack]
 
 class Card:
     def __init__(self, figure: Figure, color: Color):
-        self.code: str = Card.get_code(figure, color)
+        self.code: str = Card.to_code(figure, color)
         self.color: Color = color
         self.figure: Figure = figure
 
@@ -45,7 +45,7 @@ class Card:
         return card
 
     @staticmethod
-    def get_code(figure: Figure, color: Color) -> str:
+    def to_code(figure: Figure, color: Color) -> str:
         code = "U+1F0"
 
         if color is Color.Spades:

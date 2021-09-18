@@ -213,13 +213,18 @@ class Game:
                 can_put = True
 
         elif self.is_blocked is False or self.is_blocked is True and players_card.figure == Figure.Four:
-            if self.pick_count == 1 or players_card.figure == Figure.Two or players_card.figure == Figure.Three or pile_card.figure == Figure.Joker:
+            if self.pick_count > 1 and players_card.figure == Figure.Two or players_card.figure == Figure.Three:
+                can_put = True
+
+            elif self.pick_count == 1 or pile_card.figure == Figure.Joker:
                 if self.color_call is not None:
-                    can_put = self.color_call == players_card.color
-                    self.color_call = None
+                    if self.color_call == players_card.color:
+                        can_put = True
+                        self.color_call = None
                 elif self.figure_call is not None:
-                    can_put = self.figure_call == players_card.figure
-                    self.figure_call = None
+                    if self.figure_call == players_card.figure:
+                        can_put = True
+                        self.figure_call = None
                 elif players_card.color == pile_card.color or players_card.figure == pile_card.figure \
                         or players_card.figure == Figure.Joker or players_card.figure == Figure.Queen \
                         or pile_card.figure == Figure.Queen or pile_card.figure == Figure.Joker:
