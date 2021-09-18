@@ -18,7 +18,7 @@ class TestGame(unittest.TestCase):
         # given
         game = Game(2)
         collor_call = "Hearts"
-        game.color_call = collor_call
+        game.color_call = Color(collor_call)
         # when
         call = game.get_call()
         # then
