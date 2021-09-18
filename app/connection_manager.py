@@ -66,7 +66,8 @@ class ConnectionManager:
             print(message)
             players_move = json.loads(message["text"])
             room = self.get_room(room_id)
-            await room.handle_players_move(client_id, players_move)
+            if room.is_in_game(client_id):
+                await room.handle_players_move(client_id, players_move)
         except KeyError:
             print("handle message")
             pass
@@ -94,13 +95,12 @@ class ConnectionManager:
         return {'rooms_count': len(self.rooms),
                 'rooms_ids': [r.id for r in self.rooms]}
 
-    async def create_new_room(self, room_id):
+    async def create_new_room(self, room_id, number_of_players=4):
         if room_id not in [room.id for room in self.rooms]:
-            self.rooms.append(Room(room_id=room_id))
+            self.rooms.append(Room(room_id=room_id, number_of_players=number_of_players))
         else:
             raise RoomIdAlreadyInUse
 
     async def delete_room(self, room_id):
         room = self.get_room(room_id)
         self.rooms.remove(room)
-

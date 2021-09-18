@@ -14,6 +14,7 @@ class Game:
         self.figure_call: Union[None, Figure] = None
         self.person_turn = 1
         self.is_blocked = False
+        self.has_picked = False
         self.stack: List[Card] = self.set_full_deck()
         self.pile: List[str] = [self.get_nonfunctional_card().code]
         self.players: dict = self.get_new_game_cards(number_of_players)
@@ -85,12 +86,14 @@ class Game:
     def handle_players_other_move(self, game_id, player_move: dict):
         other_move = player_move['other_move']
         type = other_move['type']
-        if type == "pick_new_card" and self.is_blocked is False:
+        if type == "pick_new_card" and self.is_blocked is False and self.has_picked == False:
             self.pick_new_card(game_id)
+            self.has_picked = True
             self.can_skip = True
 
         elif type == "skip" and self.can_skip:
             self.is_blocked = False
+            self.has_picked = False
             return True
 
     def get_players_cards(self, game_id):
@@ -115,43 +118,43 @@ class Game:
 
             if game_id == '1':
                 if direction == "left":
-                    enemy_id = '4'
+                    enemy_id = '2'
 
                 elif direction == "top":
                     enemy_id = '3'
 
                 elif direction == "right":
-                    enemy_id = '2'
+                    enemy_id = '4'
 
             if game_id == '2':
                 if direction == "left":
-                    enemy_id = '1'
+                    enemy_id = '3'
 
                 elif direction == "top":
                     enemy_id = '4'
 
                 elif direction == "right":
-                    enemy_id = '3'
+                    enemy_id = '1'
 
             if game_id == '3':
                 if direction == "left":
-                    enemy_id = '2'
+                    enemy_id = '4'
 
                 elif direction == "top":
                     enemy_id = '1'
 
                 elif direction == "right":
-                    enemy_id = '4'
+                    enemy_id = '2'
 
             if game_id == '4':
                 if direction == "left":
-                    enemy_id = '3'
+                    enemy_id = '1'
 
                 elif direction == "top":
                     enemy_id = '2'
 
                 elif direction == "right":
-                    enemy_id = '1'
+                    enemy_id = '3'
 
             if enemy_id is not None:
                 self.handle_enemy_makao_call(enemy_id)
@@ -245,6 +248,7 @@ class Game:
 
     def reset_parameters(self):
         self.reverse = False
+        self.has_picked = False
         if self.is_blocked is False:
             self.can_skip = False
 
@@ -327,6 +331,89 @@ class Game:
 
         return {
             "player_hand": player_hand,
+            "rest_players": rest_players,
+            "pile": self.pile}
+
+    def get_current_watcher_state(self, player_id):
+        rest_players = {}
+        pl = self.players.copy()
+        bottom = len(pl[str(player_id)])
+        pl.pop(str(player_id))
+        for player in self.players:
+            if player != player_id:
+                rest_players[player] = len(self.players[player])
+
+        rest_players['bottom'] = bottom
+
+        if player_id == '1':
+            try:
+                rest_players['left'] = rest_players['4']
+                del rest_players['4']
+            except KeyError:
+                pass
+            try:
+                rest_players['top'] = rest_players['3']
+                del rest_players['3']
+            except KeyError:
+                pass
+            try:
+                rest_players['right'] = rest_players['2']
+                del rest_players['2']
+            except KeyError:
+                pass
+
+        elif player_id == '2':
+            try:
+                rest_players['left'] = rest_players['1']
+                del rest_players['1']
+            except KeyError:
+                pass
+            try:
+                rest_players['top'] = rest_players['4']
+                del rest_players['4']
+            except KeyError:
+                pass
+            try:
+                rest_players['right'] = rest_players['3']
+                del rest_players['3']
+            except KeyError:
+                pass
+
+        elif player_id == '3':
+            try:
+                rest_players['left'] = rest_players['2']
+                del rest_players['2']
+            except KeyError:
+                pass
+            try:
+                rest_players['top'] = rest_players['1']
+                del rest_players['1']
+            except KeyError:
+                pass
+            try:
+                rest_players['right'] = rest_players['4']
+                del rest_players['4']
+            except KeyError:
+                pass
+
+        if player_id == '4':
+            try:
+                rest_players['left'] = rest_players['3']
+                del rest_players['3']
+            except KeyError:
+                pass
+            try:
+                rest_players['top'] = rest_players['2']
+                del rest_players['2']
+            except KeyError:
+                pass
+            try:
+                rest_players['right'] = rest_players['1']
+                del rest_players['1']
+            except KeyError:
+                pass
+
+        return {
             "rest_players": rest_players,
             "pile": self.pile}
 

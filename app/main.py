@@ -1,3 +1,4 @@
+import logging
 from typing import Optional
 
 import uvicorn
@@ -44,6 +45,22 @@ async def end_game(room_id: str):
         )
     except RoomIdAlreadyInUse:
         print(f"Theres already a room with this id: {room_id}")
+        return JSONResponse(
+            status_code=403,
+            content={"detail": "Theres already a room with this id: {room_id}"}
+        )
+
+
+@app.post("/room/new/{room_id}/{number_players}")
+async def end_game(room_id: str, number_players: int):
+    try:
+        await manager.create_new_room(room_id, number_players)
+        return JSONResponse(
+            status_code=200,
+            content={"detail": "success"}
+        )
+    except RoomIdAlreadyInUse:
+        logging.info(f"Theres already a room with this id: {room_id}")
         return JSONResponse(
             status_code=403,
             content={"detail": "Theres already a room with this id: {room_id}"}
@@ -159,12 +176,12 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str,
 @app.websocket("/test")
 async def websocket_endpoint(websocket: WebSocket):
     json_to_send = {"is_game_on": True,
-                    "whos_turn": "left",
-                    "game_data": {"player_hand": ["U+1F0D8", "U+1F0C8", "U+1F0BB", "U+1F0C1"],
+                    "whos_turn": "player",
+                    "game_data": {"player_hand": ["U+1F0D8", "U+1F0C8", "U+1F0BB", "U+1F0C1", "U+1F0CF"],
                                   "rest_players": {'left': 4, 'top': 9, 'right': 13},
                                   "pile": ["U+1F0C7"]}, "nicks": {"right": "marcin"},
-                    'call': "Clubs"
-                    }
+                    'call': "Ace"}
+
     try:
         ws = websocket
         await ws.accept()
@@ -172,7 +189,6 @@ async def websocket_endpoint(websocket: WebSocket):
 
         message = await websocket.receive()
         print(message)
-
 
     except WebSocketDisconnect:
         print("disconnected")
