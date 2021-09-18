@@ -213,7 +213,7 @@ class Game:
                 can_put = True
 
         elif self.is_blocked is False or self.is_blocked is True and players_card.figure == Figure.Four:
-            if self.pick_count > 1 and players_card.figure == Figure.Two or players_card.figure == Figure.Three:
+            if self.pick_count > 1 and (players_card.figure == Figure.Two or players_card.figure == Figure.Three):
                 can_put = True
 
             elif self.pick_count == 1 or pile_card.figure == Figure.Joker:

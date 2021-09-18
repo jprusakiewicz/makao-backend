@@ -33,7 +33,18 @@ class TestGame(unittest.TestCase):
         game.players[str(game.person_turn)][0] = card_to_pick
         game.handle_players_cards_move(str(game.person_turn),
                                        {'picked_cards': [card_to_pick], 'functional': {"call": {"figure": "Ace"}}})
-        self.assertEqual(game.pile[0], Card.to_code(Figure.Jack, Color.Hearts))
+        self.assertEqual(game.pile[0], card_to_pick)
+
+    def test_negative_placing_three_on_ten(self):
+        # given
+        card_on_pile = Card.to_code(Figure.Ten, Color.Spades)
+        card_to_pick = Card.to_code(Figure.Three, Color.Hearts)
+        game = Game(2)
+        game.pile = [card_on_pile]
+        game.players[str(game.person_turn)][0] = card_to_pick
+        game.handle_players_cards_move(str(game.person_turn),
+                                       {'picked_cards': [card_to_pick], 'functional': {"call": {"figure": "Ace"}}})
+        self.assertNotEqual(game.pile[0], card_to_pick)
 
     def test_figure_call_positive_simple(self):
         # given
