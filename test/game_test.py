@@ -115,6 +115,7 @@ class TestGame(unittest.TestCase):
         game.handle_players_cards_move(str(game.person_turn),
                                        {'picked_cards': [card_to_pick2]})
         self.assertEqual(game.pile[0], card_to_pick2)
+        self.assertEqual(game.color_call, None)
 
     def test_color_call_negative_simple(self):
         # given
