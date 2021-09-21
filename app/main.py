@@ -1,5 +1,6 @@
 import logging
 from typing import Optional
+from datetime import datetime, timedelta
 
 import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -191,7 +192,9 @@ async def websocket_endpoint(websocket: WebSocket, room_id: str, client_id: str,
 
 @app.websocket("/test")
 async def websocket_endpoint(websocket: WebSocket):
+    time = datetime.now() + timedelta(0, 25)
     json_to_send = {"is_game_on": True,
+                    "timestamp": time.isoformat(),
                     "whos_turn": "player",
                     "game_data": {"player_hand": ["U+1F0D8", "U+1F0C8", "U+1F0BB", "U+1F0C1", "U+1F0CF"],
                                   "rest_players": {'left': 4, 'top': 9, 'right': 13},

@@ -1,7 +1,10 @@
+import asyncio
 import json
 import os
 import random
+import threading
 import uuid
+from datetime import datetime, timedelta
 from typing import List, Union
 
 import requests
@@ -21,10 +24,23 @@ class Room:
         self.whos_turn: int = 0
         self.number_of_players = number_of_players
         self.game_id: str
+        self.timeout = self.get_timeout()
+        self.timer = threading.Timer(self.timeout, self.next_person_async)
+
+    def get_timeout(self):
+        try:
+            timeout = float(os.path.join(os.getenv('TIMEOUT_SECONDS'), "rooms/update-room-status"))
+        except TypeError:
+            timeout = 15  # if theres no env var
+        return timeout
+
+    def next_person_async(self):
+        self.game.pick_new_card(self.whos_turn)
+        asyncio.run(self.next_person_move())
+        asyncio.run(self.broadcast_json())
 
     async def append_connection(self, connection):
-        # if len(self.active_connections) <= self.MAX_PLAYERS and self.is_game_on is False:
-        connection.player.game_id = self.get_free_player_game_id()
+        connection.player.game_id = self.get_free_player_game_id()  # leave this for nicks when waiting for players
         self.active_connections.append(connection)
         self.export_room_status()
         if len(self.active_connections) >= self.number_of_players and self.is_game_on is False:
@@ -74,15 +90,18 @@ class Room:
 
     async def start_game(self):
         self.is_game_on = True
+        self.put_all_players_in_game()
         self.whos_turn = self.draw_random_player_id()
-        self.game = Game(len(self.active_connections))
+        self.game = Game(len(self.get_players_in_game_regular_ids()))
         self.put_all_players_in_game()
         self.game_id = str(uuid.uuid4().hex)
+        self.restart_timer()
         await self.broadcast_json()
 
     async def end_game(self):
-        self.export_score()
         self.is_game_on = False
+        self.timer.cancel()
+        self.export_score()
         self.whos_turn = 0
         self.game = None
         self.put_all_players_out_of_game()
@@ -122,6 +141,8 @@ class Room:
     def put_all_players_in_game(self):
         for connection in self.active_connections[:4]:
             connection.player.in_game = True
+            if connection.player.game_id is None:
+                connection.player.game_id = self.get_free_player_game_id()
 
     def put_all_players_out_of_game(self):
         for connection in self.active_connections:
@@ -149,6 +170,7 @@ class Room:
                 await self.next_person_move()
 
     async def next_person_move(self):
+        self.restart_timer()
         active_players_ids = self.get_players_game_ids_in_game()
         current_idx = active_players_ids.index(self.whos_turn)
         taken_ids = self.get_players_in_game_ids()
@@ -176,21 +198,23 @@ class Room:
                                   whos_turn=self.game_id_to_direction(player.game_id, str(self.whos_turn)),
                                   game_data=self.game.get_current_state(player.game_id),
                                   nicks=self.get_nicks(player.game_id),
-                                  call=self.game.get_call())
+                                  call=self.game.get_call(),
+                                  timestamp=self.timestamp.isoformat())
             else:
                 fake_game_id = '1'
                 game_state = dict(is_game_on=self.is_game_on,
                                   whos_turn=self.game_id_to_direction(fake_game_id, str(self.whos_turn)),
                                   game_data=self.game.get_current_watcher_state(fake_game_id),
                                   nicks=self.get_nicks(fake_game_id),
-                                  call=self.game.get_call())
+                                  call=self.game.get_call(),
+                                  timestamp=self.timestamp.isoformat())
         else:
             game_state = dict(is_game_on=self.is_game_on, nicks=self.get_nicks(client_id))
 
         return json.dumps(game_state)
 
     def draw_random_player_id(self):
-        return random.choice(self.get_taken_ids())
+        return random.choice(self.get_players_in_game_ids())
 
     @property
     def get_stats(self):
@@ -307,3 +331,9 @@ class Room:
             connection.player for connection in self.active_connections if connection.player.id == client_id)
         if player.in_game:
             return True
+
+    def restart_timer(self):
+        self.timer.cancel()
+        self.timer = threading.Timer(self.timeout, self.next_person_async)
+        self.timer.start()
+        self.timestamp = datetime.now() + timedelta(0, self.timeout)
