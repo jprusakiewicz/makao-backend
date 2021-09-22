@@ -29,7 +29,7 @@ class Room:
 
     def get_timeout(self):
         try:
-            timeout = float(os.path.join(os.getenv('TIMEOUT_SECONDS'), "rooms/update-room-status"))
+            timeout = float(os.path.join(os.getenv('TIMEOUT_SECONDS')))
         except TypeError:
             timeout = 15  # if theres no env var
         return timeout
