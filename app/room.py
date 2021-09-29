@@ -93,7 +93,6 @@ class Room:
         self.put_all_players_in_game()
         self.whos_turn = self.draw_random_player_id()
         self.game = Game(len(self.get_players_in_game_regular_ids()))
-        self.put_all_players_in_game()
         self.game_id = str(uuid.uuid4().hex)
         self.restart_timer()
         await self.broadcast_json()
@@ -295,7 +294,8 @@ class Room:
 
     def export_score(self):
         try:
-            result = requests.post(url=os.getenv('EXPORT_RESULTS_URL'), json=dict(roomId=self.id, results=self.winners))
+            result = requests.post(url=os.path.join(os.getenv('EXPORT_RESULTS_URL'), "games/handle-results/makao"),
+                                   json=dict(roomId=self.id, results=self.winners))
             if result.status_code == 200:
                 print("export succesfull")
             else:
