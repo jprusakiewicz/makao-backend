@@ -208,7 +208,8 @@ class Room:
                                   call=self.game.get_call(),
                                   timestamp=self.timestamp.isoformat())
         else:
-            game_state = dict(is_game_on=self.is_game_on, nicks=self.get_nicks(client_id))
+            game_state = dict(is_game_on=self.is_game_on, nicks=self.get_nicks(client_id),
+                              game_data=self.get_fake_game_data())
 
         return json.dumps(game_state)
 
@@ -337,3 +338,9 @@ class Room:
         self.timer = threading.Timer(self.timeout, self.next_person_async)
         self.timer.start()
         self.timestamp = datetime.now() + timedelta(0, self.timeout)
+
+    def get_fake_game_data(self):
+        return {
+            "player_hand": ["U+1F0D8", "U+1F0C8", "U+1F0BB", "U+1F0C1", "U+1F0CF"],
+            "rest_players": {'left': 5, 'top': 5, 'right': 5},
+            "pile": ["U+1F0C7"]}
