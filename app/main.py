@@ -1,6 +1,6 @@
 import logging
-from typing import Optional
 from datetime import datetime, timedelta
+from typing import Optional
 
 import uvicorn
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -8,7 +8,7 @@ from starlette.responses import JSONResponse
 from websockets import ConnectionClosedOK
 
 from app.connection_manager import ConnectionManager
-from app.server_errors import PlayerIdAlreadyInUse, NoRoomWithThisId, RoomIdAlreadyInUse, GameIsStarted
+from app.server_errors import PlayerIdAlreadyInUse, NoRoomWithThisId, RoomIdAlreadyInUse, GameIsStarted, ToManyPlayers
 
 app = FastAPI()
 
@@ -65,6 +65,11 @@ async def end_game(room_id: str, number_players: int):
         return JSONResponse(
             status_code=403,
             content={"detail": "Theres already a room with this id: {room_id}"}
+        )
+    except ToManyPlayers:
+        return JSONResponse(
+            status_code=403,
+            content={"detail": "Max makao players is 4!"}
         )
 
 
@@ -198,8 +203,8 @@ async def websocket_endpoint(websocket: WebSocket):
                     "whos_turn": "player",
                     "game_data": {
                         "player_hand": ["U+1F0D8", "U+1F0C8", "U+1F0BB", "U+1F0C1", "U+1F0CF"],
-                                  "rest_players": {'left': 4, 'top': 9, 'right': 13},
-                                  "pile": ["U+1F0C7"]}, "nicks": {"right": "marcin"},
+                        "rest_players": {'left': 4, 'top': 9, 'right': 13},
+                        "pile": ["U+1F0C7"]}, "nicks": {"right": "marcin"},
                     'call': "Ace"}
 
     try:

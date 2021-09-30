@@ -138,7 +138,7 @@ class Room:
             print(f"kicked player {player.id}")
 
     def put_all_players_in_game(self):
-        for connection in self.active_connections[:4]:
+        for connection in self.active_connections[:self.number_of_players]:
             connection.player.in_game = True
             if connection.player.game_id is None:
                 connection.player.game_id = self.get_free_player_game_id()
