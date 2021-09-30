@@ -285,6 +285,9 @@ class Room:
                    connection.player.in_game is True]
         return players
 
+    def get_connections_regular_ids(self):
+        return [connection.player.id for connection in self.active_connections]
+
     async def check_and_handle_empty_hand(self, player):
         if len(self.game.players[player.game_id]) == 0:
             print(f"player {player.id} has ended")
@@ -302,21 +305,23 @@ class Room:
             else:
                 print("export failed: ", result.text, result.status_code)
                 print(self.winners)
-        except (KeyError, requests.exceptions.MissingSchema):
+        except (KeyError, TypeError, requests.exceptions.MissingSchema):
             print("failed to get EXPORT_RESULT_URL env var")
 
     def export_room_status(self):
         try:
             if self.is_game_on:
-                is_in_game = self.get_players_in_game_regular_ids()
+                activePlayers = self.get_players_in_game_regular_ids()
                 for player in self.active_connections:
-                    if player.player.game_id not in is_in_game and player.player.game_id in self.winners:
-                        is_in_game.append(player.player.id)
+                    if player.player.game_id not in activePlayers and player.player.game_id in self.winners:
+                        activePlayers.append(player.player.id)
             else:
-                is_in_game = self.get_taken_ids()
+                activePlayers = self.get_connections_regular_ids()
+            connectionsCount: int = len(self.active_connections)
             result = requests.post(
                 url=os.path.join(os.getenv('EXPORT_RESULTS_URL'), "rooms/update-room-status"),
-                json=dict(roomId=self.id, currentResults=self.winners, activePlayers=is_in_game))
+                json=dict(roomId=self.id, currentResults=self.winners, activePlayers=activePlayers,
+                          connectionsCount=connectionsCount))
 
             if result.status_code == 200:
                 print("export succesfull")
