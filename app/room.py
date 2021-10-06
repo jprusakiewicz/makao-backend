@@ -55,11 +55,6 @@ class Room:
             connection.player for connection in self.active_connections if connection.player.id == id)
         return player
 
-    def get_players_game_ids_in_game(self):
-        players = [connection.player.game_id for connection in self.active_connections if
-                   connection.player.in_game]
-        return players
-
     def get_players_in_game_ids(self) -> List[str]:
         taken_ids = [connection.player.game_id for connection in self.active_connections if
                      connection.player.in_game == True]
@@ -170,8 +165,8 @@ class Room:
 
     async def next_person_move(self):
         self.restart_timer()
-        active_players_ids = self.get_players_game_ids_in_game()
-        current_idx = active_players_ids.index(self.whos_turn)
+        active_players_ids = self.get_players_in_game_ids()
+        current_idx = active_players_ids.index(str(self.whos_turn))
         taken_ids = self.get_players_in_game_ids()
         if len(taken_ids) <= 1:
             await self.end_game()
@@ -223,11 +218,13 @@ class Room:
                      "whos turn": self.whos_turn,
                      "number_of_players": self.number_of_players,
                      "number_of_connected_players": len(self.active_connections),
+                     "players_ids": self.get_players_regular_ids(),
                      "pile": self.game.pile,
                      "call": self.game.get_call()}
         else:
             stats = {'is_game_on': self.is_game_on,
                      "number_of_players": self.number_of_players,
+                     "players_ids": self.get_players_regular_ids(),
                      "number_of_connected_players": len(self.active_connections), }
         return stats
 
@@ -283,6 +280,10 @@ class Room:
     def get_players_in_game_regular_ids(self):
         players = [connection.player.id for connection in self.active_connections if
                    connection.player.in_game is True]
+        return players
+
+    def get_players_regular_ids(self):
+        players = [connection.player.id for connection in self.active_connections]
         return players
 
     def get_connections_regular_ids(self):

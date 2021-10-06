@@ -37,7 +37,7 @@ async def get_stats(room_id: Optional[str] = None):
 
 
 @app.post("/room/new/{room_id}")
-async def end_game(room_id: str):
+async def new_room(room_id: str):
     try:
         await manager.create_new_room(room_id)
         return JSONResponse(
@@ -53,7 +53,7 @@ async def end_game(room_id: str):
 
 
 @app.post("/room/new/{room_id}/{number_players}")
-async def end_game(room_id: str, number_players: int):
+async def new_room(room_id: str, number_players: int):
     try:
         await manager.create_new_room(room_id, number_players)
         return JSONResponse(
@@ -204,7 +204,7 @@ async def websocket_endpoint(websocket: WebSocket):
                     "game_data": {
                         "player_hand": ["U+1F0D8", "U+1F0C8", "U+1F0BB", "U+1F0C1", "U+1F0CF"],
                         "rest_players": {'left': 4, 'top': 9, 'right': 13},
-                        "pile": ["U+1F0C7"]}, "nicks": {"right": "marcin"},
+                        "pile": ["U+1F0C7"]}, "nicks": {"right": "marcin", "player": "kuba"},
                     'call': "Ace"}
 
     try:
