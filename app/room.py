@@ -31,7 +31,7 @@ class Room:
         try:
             timeout = float(os.path.join(os.getenv('TIMEOUT_SECONDS')))
         except TypeError:
-            timeout = 15  # if theres no env var
+            timeout = 55  # if theres no env var
         return timeout
 
     def next_person_async(self):
@@ -69,9 +69,8 @@ class Room:
     async def remove_connection(self, connection_with_given_ws):
         await self.remove_player_by_id(connection_with_given_ws.player.id)
         self.active_connections.remove(connection_with_given_ws)
-        self.export_room_status()
 
-        if len(self.get_players_in_game_ids()) <= 1:
+        if len(self.get_players_in_game_ids()) <= 1 and self.is_game_on is True:
             await self.end_game()
 
     async def broadcast_json(self):
@@ -85,7 +84,7 @@ class Room:
 
     async def start_game(self):
         self.is_game_on = True
-        self.put_all_players_in_game()
+        self.put_players_in_game()
         self.whos_turn = self.draw_random_player_id()
         self.game = Game(len(self.get_players_in_game_regular_ids()))
         self.game_id = str(uuid.uuid4().hex)
@@ -121,8 +120,12 @@ class Room:
             await self.broadcast_json()
 
     async def remove_player_by_id(self, id):
-        player = next(
-            connection.player for connection in self.active_connections if connection.player.id == id)
+        try:
+            player = next(
+                connection.player for connection in self.active_connections if connection.player.id == id)
+        except StopIteration:
+            print(f"no player with id: {id}")
+            return None
         if self.game is not None:
             self.game.remove_players_cards(player.game_id)
             if self.whos_turn == player.game_id:
@@ -132,7 +135,7 @@ class Room:
 
             print(f"kicked player {player.id}")
 
-    def put_all_players_in_game(self):
+    def put_players_in_game(self):
         for connection in self.active_connections[:self.number_of_players]:
             connection.player.in_game = True
             if connection.player.game_id is None:
@@ -294,10 +297,11 @@ class Room:
             print(f"player {player.id} has ended")
             self.winners.append(player.id)
             await self.remove_player_by_game_id(player.game_id)
-            if len(self.winners) == 4:
+            if len(self.winners) == len(self.game.players) - 1:
                 await self.restart_or_end_game()
 
     def export_score(self):
+        print(self.winners)
         try:
             result = requests.post(url=os.path.join(os.getenv('EXPORT_RESULTS_URL'), "games/handle-results/makao"),
                                    json=dict(roomId=self.id, results=self.winners))
@@ -305,9 +309,8 @@ class Room:
                 print("export succesfull")
             else:
                 print("export failed: ", result.text, result.status_code)
-                print(self.winners)
-        except (KeyError, TypeError, requests.exceptions.MissingSchema):
-            print("failed to get EXPORT_RESULT_URL env var")
+        except Exception as e:
+            print(f"failed to get EXPORT_RESULTs_URL env var: {e.__class__.__name__}")
 
     def export_room_status(self):
         try:
@@ -318,6 +321,8 @@ class Room:
                         activePlayers.append(player.player.id)
             else:
                 activePlayers = self.get_connections_regular_ids()
+
+            print(activePlayers)
             connectionsCount: int = len(self.active_connections)
             result = requests.post(
                 url=os.path.join(os.getenv('EXPORT_RESULTS_URL'), "rooms/update-room-status"),
@@ -328,10 +333,8 @@ class Room:
                 print("export succesfull")
             else:
                 print("export failed: ", result.text, result.status_code)
-                print(self.winners)
         except Exception as e:
-            print(e.__class__.__name__)
-            print("failed to get EXPORT_RESULTS_URL env var")
+            print(f"failed to get EXPORT_RESULTS_URL env var {e.__class__.__name__}")
 
     def is_in_game(self, client_id):
         player = next(

@@ -10,6 +10,7 @@ class Game:
         self.pick_count = 1
         self.can_skip = False
         self.reverse = False
+        self.call_moves_count = 0
         self.color_call: Union[None, Color] = None
         self.figure_call: Union[None, Figure] = None
         self.person_turn = 1
@@ -94,6 +95,11 @@ class Game:
         elif type == "skip" and self.can_skip:
             self.is_blocked = False
             self.has_picked = False
+            if self.color_call is not None or self.figure_call is not None:
+                self.call_moves_count += 1
+            if self.call_moves_count >= len(self.players) - 1:
+                self.color_call = None
+                self.figure_call = None
             return True
 
     def get_players_cards(self, game_id):
@@ -221,10 +227,12 @@ class Game:
                     if self.color_call == players_card.color:
                         can_put = True
                         self.color_call = None
+                        self.call_moves_count = 0
                 elif self.figure_call is not None:
                     if self.figure_call == players_card.figure:
                         can_put = True
                         self.figure_call = None
+                        self.call_moves_count = 0
                 elif players_card.color == pile_card.color or players_card.figure == pile_card.figure \
                         or players_card.figure == Figure.Joker or players_card.figure == Figure.Queen \
                         or pile_card.figure == Figure.Queen or pile_card.figure == Figure.Joker:
