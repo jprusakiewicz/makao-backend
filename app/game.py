@@ -478,3 +478,4 @@ class Game:
         for player_id in range(0, 4):
             makaos[str(player_id + 1)] = False
         return makaos
+

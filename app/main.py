@@ -205,6 +205,7 @@ async def websocket_endpoint(websocket: WebSocket):
                         "player_hand": ["U+1F0D8", "U+1F0C8", "U+1F0BB", "U+1F0C1", "U+1F0CF"],
                         "rest_players": {'left': 4, 'top': 9, 'right': 13},
                         "pile": ["U+1F0C7"]}, "nicks": {"right": "marcin", "player": "kuba"},
+                    "particle": {"right": "makao"},
                     'call': "Ace"}
 
     try:

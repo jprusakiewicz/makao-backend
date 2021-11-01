@@ -11,6 +11,7 @@ import requests
 
 from .connection import Connection
 from .game import Game
+from .player import Player
 from .server_errors import ItsNotYourTurn
 
 
@@ -295,10 +296,13 @@ class Room:
     async def check_and_handle_empty_hand(self, player):
         if len(self.game.players[player.game_id]) == 0:
             print(f"player {player.id} has ended")
+            await self.broadcast_makao_move(player, 'finish')
             self.winners.append(player.id)
             await self.remove_player_by_game_id(player.game_id)
             if len(self.winners) == len(self.game.players) - 1:
-                await self.restart_or_end_game()
+                return True
+        else:
+            await self.broadcast_makao_move(player, 'makao')
 
     def export_score(self):
         print(self.winners)
@@ -353,3 +357,9 @@ class Room:
             "player_hand": ["U+1F0D8", "U+1F0C8", "U+1F0BB", "U+1F0C1", "U+1F0CF"],
             "rest_players": {'left': 5, 'top': 5, 'right': 5},
             "pile": ["U+1F0C7"]}
+
+    async def broadcast_makao_move(self, makao_move_player: Player, makao_type: str):
+        for connection in self.active_connections:
+            direction = self.game_id_to_direction(connection.player.game_id, makao_move_player.game_id)
+            text = {"particle": {direction: makao_type}}
+            await connection.ws.send_json(text)
