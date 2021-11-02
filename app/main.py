@@ -8,7 +8,8 @@ from starlette.responses import JSONResponse
 from websockets import ConnectionClosedOK
 
 from app.connection_manager import ConnectionManager
-from app.server_errors import PlayerIdAlreadyInUse, NoRoomWithThisId, RoomIdAlreadyInUse, GameIsStarted, ToManyPlayers
+from app.server_errors import PlayerIdAlreadyInUse, NoRoomWithThisId, RoomIdAlreadyInUse, GameIsStarted, ToManyPlayers, \
+    NoPlayerWithThisId
 
 app = FastAPI()
 
@@ -32,7 +33,13 @@ async def get():
 @app.get("/stats")
 async def get_stats(room_id: Optional[str] = None):
     if room_id:
-        return manager.get_room_stats(room_id)
+        try:
+            return manager.get_room_stats(room_id)
+        except NoRoomWithThisId:
+            return JSONResponse(
+                status_code=403,
+                content={"detail": f"No room with this id: {room_id}"}
+            )
     return manager.get_overall_stats()
 
 
@@ -74,7 +81,7 @@ async def new_room(room_id: str, number_players: int):
 
 
 @app.post("/room/new/{room_id}/{number_players}")
-async def end_game(room_id: str, number_players: int):
+async def new_room(room_id: str, number_players: int):
     try:
         await manager.create_new_room(room_id, number_players)
         return JSONResponse(
@@ -143,7 +150,18 @@ async def restart_game(room_id: str):
 
 @app.post("/game/kick_player/{room_id}/{player_id}")
 async def kick_player(room_id: str, player_id: str):
-    await manager.kick_player(room_id, player_id)
+    try:
+        await manager.kick_player(room_id, player_id)
+    except NoRoomWithThisId:
+        return JSONResponse(
+            status_code=403,
+            content={"detail": f"No room with this id: {room_id}"}
+        )
+    except NoPlayerWithThisId:
+        return JSONResponse(
+            status_code=403,
+            content={"detail": f"No player with this id: {room_id}"}
+        )
     return JSONResponse(
         status_code=200,
         content={"detail": "success"}

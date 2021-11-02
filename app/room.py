@@ -12,7 +12,7 @@ import requests
 from .connection import Connection
 from .game import Game
 from .player import Player
-from .server_errors import ItsNotYourTurn
+from .server_errors import ItsNotYourTurn, NoPlayerWithThisId
 
 
 class Room:
@@ -68,7 +68,7 @@ class Room:
                 return str(i)
 
     async def remove_connection(self, connection_with_given_ws):
-        await self.remove_player_by_id(connection_with_given_ws.player.id)
+        await self.handle_player_remove(connection_with_given_ws.player.id)
         self.active_connections.remove(connection_with_given_ws)
 
         if len(self.get_players_in_game_ids()) <= 1 and self.is_game_on is True:
@@ -120,13 +120,13 @@ class Room:
 
             await self.broadcast_json()
 
-    async def remove_player_by_id(self, id):
+    async def handle_player_remove(self, id):
         try:
             player = next(
                 connection.player for connection in self.active_connections if connection.player.id == id)
         except StopIteration:
             print(f"no player with id: {id}")
-            return None
+            raise NoPlayerWithThisId
         if self.game is not None:
             self.game.remove_players_cards(player.game_id)
             if self.whos_turn == player.game_id:
@@ -279,7 +279,16 @@ class Room:
             raise ItsNotYourTurn
 
     async def kick_player(self, player_id):
+        await self.handle_player_remove(player_id)
         await self.remove_player_by_id(player_id)
+
+    async def remove_player_by_id(self, id):
+        try:
+            connection = next(
+                connection for connection in self.active_connections if connection.player.id == id)
+        except StopIteration:
+            raise NoPlayerWithThisId
+        await self.remove_connection(connection)
 
     def get_players_in_game_regular_ids(self):
         players = [connection.player.id for connection in self.active_connections if
