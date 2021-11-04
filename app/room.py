@@ -3,7 +3,6 @@ import json
 import os
 import random
 import threading
-import time
 import uuid
 from datetime import datetime, timedelta
 from typing import List, Union
@@ -326,7 +325,7 @@ class Room:
         except Exception as e:
             print(f"failed to get EXPORT_RESULTs_URL env var: {e.__class__.__name__}")
 
-    def export_makao_move(self, makao_type: str, player_id: str):
+    def export_makao_move(self, player_id: str, makao_type: str):
         if makao_type == "makao":
             url_ending = "games/handle-button/makao"
         elif makao_type == "finish":
@@ -355,7 +354,6 @@ class Room:
             else:
                 activePlayers = self.get_connections_regular_ids()
 
-            print(activePlayers)
             connectionsCount: int = len(self.active_connections)
             result = requests.post(
                 url=os.path.join(os.getenv('EXPORT_RESULTS_URL'), "rooms/update-room-status"),
