@@ -3,6 +3,7 @@ import json
 import os
 import random
 import threading
+import time
 import uuid
 from datetime import datetime, timedelta
 from typing import List, Union
@@ -111,7 +112,6 @@ class Room:
         player = next(
             connection.player for connection in self.active_connections if connection.player.game_id == game_id)
         if self.game:
-
             self.game.remove_players_cards(player.game_id)
             if self.whos_turn == player.game_id:
                 await self.next_person_move()
@@ -306,10 +306,11 @@ class Room:
         if len(self.game.players[player.game_id]) == 0:
             print(f"player {player.id} has ended")
             await self.broadcast_makao_move(player, 'finish')
+            time.sleep(1)
             self.winners.append(player.id)
             await self.remove_player_by_game_id(player.game_id)
-            if len(self.winners) == len(self.game.players) - 1:
-                return True
+            if len(self.winners) >= len(self.game.players) - 1:
+                await self.restart_or_end_game()
         else:
             await self.broadcast_makao_move(player, 'makao')
 
@@ -327,9 +328,9 @@ class Room:
 
     def export_makao_move(self, makao_type: str, player_id: str):
         if makao_type == "makao":
-            url_ending = "/games/handle-button/makao"
+            url_ending = "games/handle-button/makao"
         elif makao_type == "finish":
-            url_ending = "/games/handle-button/makao-finish"
+            url_ending = "games/handle-button/makao-finish"
         else:
             return
 
@@ -386,9 +387,9 @@ class Room:
             "rest_players": {'left': 5, 'top': 5, 'right': 5},
             "pile": ["U+1F0C7"]}
 
-    async def broadcast_makao_move(self, makao_move_player: Player, makao_type: str):
-        self.export_makao_move(makao_move_player.id, makao_type)
+    async def broadcast_makao_move(self, player: Player, makao_type: str):
+        self.export_makao_move(player.id, makao_type)
         for connection in self.active_connections:
-            direction = self.game_id_to_direction(connection.player.game_id, makao_move_player.game_id)
+            direction = self.game_id_to_direction(connection.player.game_id, player.game_id)
             text = {"particle": {direction: makao_type}}
             await connection.ws.send_json(text)
