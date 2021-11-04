@@ -108,15 +108,15 @@ class Game:
     def handle_players_makao_call(self, game_id):
         if len(self.get_players_cards(game_id)) <= 1:
             self.makaos[game_id] = True
+            return True
 
     def set_players_makao_false(self, game_id):
         self.makaos[game_id] = False
 
     def handle_makao_move(self, game_id, player_move: dict):
         makao_type = player_move['makao_move']['type']
-        if makao_type == "makao":
-            self.handle_players_makao_call(game_id)
-            return True
+        if makao_type == "makao" or makao_type == "finish":
+            return self.handle_players_makao_call(game_id)
 
         elif makao_type == "nick_click":
             direction = player_move['makao_move']['direction']
