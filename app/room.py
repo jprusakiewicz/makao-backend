@@ -325,6 +325,25 @@ class Room:
         except Exception as e:
             print(f"failed to get EXPORT_RESULTs_URL env var: {e.__class__.__name__}")
 
+    def export_makao_move(self, makao_type: str, player_id: str):
+        if makao_type == "makao":
+            url_ending = "/games/handle-button/makao"
+        elif makao_type == "finish":
+            url_ending = "/games/handle-button/makao-finish"
+        else:
+            return
+
+        url = os.path.join(os.getenv('EXPORT_RESULTS_URL'), url_ending)
+        try:
+            result = requests.post(url=url,
+                                   json=dict(roomId=self.id, userId=player_id))
+            if result.status_code == 200:
+                print("makao export succesfull")
+            else:
+                print("makao export failed: ", result.text, result.status_code)
+        except Exception as e:
+            print(f"failed to get EXPORT_RESULTs_URL env var: {e.__class__.__name__}")
+
     def export_room_status(self):
         try:
             if self.is_game_on:
@@ -368,6 +387,7 @@ class Room:
             "pile": ["U+1F0C7"]}
 
     async def broadcast_makao_move(self, makao_move_player: Player, makao_type: str):
+        self.export_makao_move(makao_move_player.id, makao_type)
         for connection in self.active_connections:
             direction = self.game_id_to_direction(connection.player.game_id, makao_move_player.game_id)
             text = {"particle": {direction: makao_type}}
