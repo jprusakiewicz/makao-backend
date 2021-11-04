@@ -91,6 +91,7 @@ class Room:
         self.game = Game(len(self.get_players_in_game_regular_ids()))
         self.game_id = str(uuid.uuid4().hex)
         self.restart_timer()
+        self.export_room_status()
         await self.broadcast_json()
 
     async def end_game(self):
@@ -306,7 +307,6 @@ class Room:
         if len(self.game.players[player.game_id]) == 0:
             print(f"player {player.id} has ended")
             await self.broadcast_makao_move(player, 'finish')
-            time.sleep(1)
             self.winners.append(player.id)
             await self.remove_player_by_game_id(player.game_id)
             if len(self.winners) >= len(self.game.players) - 1:
