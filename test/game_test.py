@@ -206,6 +206,53 @@ class TestGame(unittest.TestCase):
         self.assertEqual(game.pile[0], card_to_pick2)
         self.assertEqual(game.pick_count, expected_pick_count)
 
+    def test_picking_double_king_negative(self):
+        # given
+        card_on_pile = Card.to_code(Figure.Queen, Color.Spades)
+        card_to_pick = Card.to_code(Figure.King, Color.Spades)
+        card_to_pick2 = Card.to_code(Figure.King, Color.Clubs)
+
+        expected_pick_count = 5
+
+        game = Game(2)
+        game.pile = [card_on_pile]
+        game.players[str(game.person_turn)][0] = card_to_pick
+        game.handle_players_cards_move(str(game.person_turn),
+                                       {'picked_cards': [card_to_pick],
+                                        'functional': {"call": {"color": "Clubs"}}})
+        game.players[str(game.person_turn)][0] = card_to_pick2
+        game.handle_players_cards_move(str(game.person_turn),
+                                       {'picked_cards': [card_to_pick2]})
+
+        self.assertEqual(game.pile[0], card_to_pick)
+        self.assertEqual(game.pick_count, expected_pick_count)
+
+    def test_picking_double_king_positive(self):
+        # given
+        card_on_pile = Card.to_code(Figure.Queen, Color.Spades)
+        card_to_pick = Card.to_code(Figure.King, Color.Spades)
+        card_to_pick2 = Card.to_code(Figure.King, Color.Clubs)
+
+        expected_pick_count = 1
+
+        game = Game(2)
+        game.pile = [card_on_pile]
+        game.players[str(game.person_turn)][0] = card_to_pick
+        game.handle_players_cards_move(str(game.person_turn),
+                                       {'picked_cards': [card_to_pick],
+                                        'functional': {"call": {"color": "Clubs"}}})
+
+        # pick cards 5
+        game.handle_players_other_move(str(game.person_turn),
+                                       {'other_move': {"type": "pick_new_card"}})
+
+        game.players[str(game.person_turn)][0] = card_to_pick2
+        game.handle_players_cards_move(str(game.person_turn),
+                                       {'picked_cards': [card_to_pick2]})
+
+        self.assertEqual(game.pile[0], card_to_pick2)
+        self.assertEqual(game.pick_count, expected_pick_count)
+
     def test_picking_two_three_same_color(self):
         # given
         card_on_pile = Card.to_code(Figure.Queen, Color.Spades)

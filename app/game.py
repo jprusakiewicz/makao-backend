@@ -213,9 +213,14 @@ class Game:
         # króle
         if pile_card.figure == Figure.King and pile_card.color == Color.Spades \
                 or pile_card.figure == Figure.King and pile_card.color == Color.Hearts:
-            if players_card.figure == Figure.King and players_card.color == Color.Diamonds \
-                    or players_card.figure == Figure.King and players_card.color == Color.Clubs \
-                    or self.pick_count == 1:
+
+            # skipping defensive kings logic.
+            # if players_card.figure == Figure.King and players_card.color == Color.Diamonds \
+            #         or players_card.figure == Figure.King and players_card.color == Color.Clubs \
+            #         or self.pick_count == 1:
+            #     can_put = True
+
+            if self.pick_count == 1:
                 can_put = True
 
         elif self.is_blocked is False or self.is_blocked is True and players_card.figure == Figure.Four:
