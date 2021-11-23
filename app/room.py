@@ -317,7 +317,7 @@ class Room:
     def export_game_end(self):
         try:
             result = requests.post(
-                url=os.path.join(os.getenv('EXPORT_RESULTS_URL'), f"/games/handle-finish/makao/{self.id}"))
+                url=os.path.join(os.getenv('EXPORT_RESULTS_URL'), f"games/handle-finish/makao/{self.id}"))
             if result.status_code == 200:
                 print("export succesfull")
             else:
