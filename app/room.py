@@ -317,7 +317,7 @@ class Room:
     def export_winner(self):
         try:
             result = requests.post(url=os.path.join(os.getenv('EXPORT_RESULTS_URL'), "games/handle-button/makao-finish"),
-                                   json=dict(roomId=self.id, results=self.winners[0]))
+                                   json=dict(roomId=self.id, userId=self.winners[0]))
             if result.status_code == 200:
                 print("export succesfull")
             else:
