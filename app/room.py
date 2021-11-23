@@ -309,12 +309,23 @@ class Room:
             self.winners.append(player.id)
             await self.remove_player_by_game_id(player.game_id)
             if len(self.winners) >= len(self.game.players) - 1:
+                self.export_winner()
                 await self.restart_or_end_game()
         else:
             await self.broadcast_makao_move(player, 'makao')
 
+    def export_winner(self):
+        try:
+            result = requests.post(url=os.path.join(os.getenv('EXPORT_RESULTS_URL'), "games/handle-button/makao-finish"),
+                                   json=dict(roomId=self.id, results=self.winners[0]))
+            if result.status_code == 200:
+                print("export succesfull")
+            else:
+                print("export failed: ", result.text, result.status_code)
+        except Exception as e:
+            print(f"failed to get EXPORT_RESULTs_URL env var: {e.__class__.__name__}")
+
     def export_score(self):
-        print(self.winners)
         try:
             result = requests.post(url=os.path.join(os.getenv('EXPORT_RESULTS_URL'), "games/handle-results/makao"),
                                    json=dict(roomId=self.id, results=self.winners))
