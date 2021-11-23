@@ -309,15 +309,15 @@ class Room:
             self.winners.append(player.id)
             await self.remove_player_by_game_id(player.game_id)
             if len(self.winners) >= len(self.game.players) - 1:
-                self.export_winner()
+                self.export_game_end()
                 await self.restart_or_end_game()
         else:
             await self.broadcast_makao_move(player, 'makao')
 
-    def export_winner(self):
+    def export_game_end(self):
         try:
-            result = requests.post(url=os.path.join(os.getenv('EXPORT_RESULTS_URL'), "games/handle-button/makao-finish"),
-                                   json=dict(roomId=self.id, userId=self.winners[0]))
+            result = requests.post(
+                url=os.path.join(os.getenv('EXPORT_RESULTS_URL'), f"/games/handle-finish/makao/{self.id}"))
             if result.status_code == 200:
                 print("export succesfull")
             else:
