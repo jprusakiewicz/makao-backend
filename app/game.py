@@ -41,13 +41,13 @@ class Game:
         shuffle(cards)
         return cards
 
-    def get_new_game_cards(self, number_of_players: int):
+    def get_new_game_cards(self, number_of_players: int, cards_in_hand: int = 5):
         players = {}
         if number_of_players > 4 or number_of_players <= 1:
             raise ValueError
         for player_id in range(number_of_players):
             player_cards = []
-            while len(player_cards) != 4:
+            while len(player_cards) != cards_in_hand:
                 player_cards.append(self.get_card().code)
             players[str(player_id + 1)] = player_cards
         return players
@@ -483,4 +483,3 @@ class Game:
         for player_id in range(0, 4):
             makaos[str(player_id + 1)] = False
         return makaos
-
