@@ -124,17 +124,21 @@ class Room:
         try:
             player = next(
                 connection.player for connection in self.active_connections if connection.player.id == id)
+
+            if self.game is not None and player.in_game:
+                self.game.remove_players_cards(player.game_id)
+                if self.whos_turn == player.game_id:
+                    await self.next_person_move()
+                player.in_game = False
+            print(f"kicked player {player.id}")
+
         except StopIteration:
             print(f"no player with id: {id}")
-            raise NoPlayerWithThisId
-        if self.game is not None:
-            self.game.remove_players_cards(player.game_id)
-            if self.whos_turn == player.game_id:
-                await self.next_person_move()
-            player.in_game = False
-            self.export_room_status()
+        except KeyError:
+            print(f"player with id: {id} has no cards")
+            print(f"kicked player {id}")
 
-            print(f"kicked player {player.id}")
+        self.export_room_status()
 
     def put_players_in_game(self):
         for connection in self.active_connections[:self.number_of_players]:
