@@ -58,7 +58,7 @@ class Game:
 
         if self.is_card_in_players_hand(game_id, picked_cards[0]) \
                 and all([self.can_put_on_pile(card) for card in picked_cards]):
-            self.used_cards.extend(picked_cards[0])
+            self.used_cards.append(picked_cards[0])
             self.remove_cards_from_players_hand(game_id, picked_cards[0])
             picked_cards.reverse()
             self.pile = picked_cards
