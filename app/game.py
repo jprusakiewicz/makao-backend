@@ -210,8 +210,10 @@ class Game:
         players_card = Card.from_code(picked_card)
         pile_card = Card.from_code(self.pile[-1])
 
-        # króle
-        if pile_card.figure == Figure.King and pile_card.color == Color.Spades \
+        if players_card.figure == Figure.Joker:
+            can_put = True
+        # kings
+        elif pile_card.figure == Figure.King and pile_card.color == Color.Spades \
                 or pile_card.figure == Figure.King and pile_card.color == Color.Hearts:
 
             # skipping defensive kings logic.
@@ -227,7 +229,7 @@ class Game:
             if self.pick_count > 1 and (players_card.figure == Figure.Two or players_card.figure == Figure.Three):
                 can_put = True
 
-            elif self.pick_count == 1 or pile_card.figure == Figure.Joker:
+            elif self.pick_count == 1:
                 if self.color_call is not None:
                     if self.color_call == players_card.color:
                         can_put = True
@@ -239,8 +241,7 @@ class Game:
                         self.figure_call = None
                         self.call_moves_count = 0
                 elif players_card.color == pile_card.color or players_card.figure == pile_card.figure \
-                        or players_card.figure == Figure.Joker or players_card.figure == Figure.Queen \
-                        or pile_card.figure == Figure.Queen or pile_card.figure == Figure.Joker:
+                        or players_card.figure == Figure.Queen or pile_card.figure == Figure.Queen:
                     can_put = True
                 else:
                     print("can not put this card on pile")
