@@ -60,9 +60,10 @@ class Game:
                 and all([self.can_put_on_pile(card) for card in picked_cards]):
             self.used_cards.append(picked_cards[0])
             self.remove_cards_from_players_hand(game_id, picked_cards[0])
+
+            card = Card.from_code(picked_cards[0])
             picked_cards.reverse()
             self.pile = picked_cards
-            card = Card.from_code(picked_cards[0])
 
             if card.is_functional_with_call():
                 if card.is_functional_with_call():
@@ -231,12 +232,12 @@ class Game:
 
             elif self.pick_count == 1:
                 if self.color_call is not None:
-                    if self.color_call == players_card.color:
+                    if self.color_call == players_card.color or players_card.figure == Figure.Ace:
                         can_put = True
                         self.color_call = None
                         self.call_moves_count = 0
                 elif self.figure_call is not None:
-                    if self.figure_call == players_card.figure:
+                    if self.figure_call == players_card.figure or players_card.figure == Figure.Jack:
                         can_put = True
                         self.figure_call = None
                         self.call_moves_count = 0
