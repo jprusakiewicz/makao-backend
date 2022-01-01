@@ -631,8 +631,8 @@ class TestGame(unittest.TestCase):
         # given
         card_on_pile = Card.to_code(Figure.Queen, Color.Spades)
         card_to_pick0 = Card.to_code(Figure.Jack, Color.Clubs)
-        card_to_pick = Card.to_code(Figure.Joker, Color.Diamonds)
-        card_to_pick2 = Card.to_code(Figure.Five, Color.Spades)
+        joker = Card.to_code(Figure.Joker, Color.Diamonds)
+        card_to_pick = Card.to_code(Figure.Five, Color.Spades)
 
         # when
         game = Game(2)
@@ -645,21 +645,21 @@ class TestGame(unittest.TestCase):
 
         self.assertEqual(card_to_pick0, game.pile[0])
 
-        game.players[str(game.person_turn)][0] = card_to_pick
-        game.players[str(game.person_turn)][1] = card_to_pick2
+        game.players[str(game.person_turn)][0] = joker
+        game.players[str(game.person_turn)][1] = card_to_pick
 
         game.handle_players_cards_move(str(game.person_turn),
-                                       {'picked_cards': [card_to_pick2, card_to_pick]})  # idx 0 card + idx 1 joker
+                                       {'picked_cards': [joker, card_to_pick]})  # idx 0 joker idx 1 card
 
         # then
         self.assertEqual(card_to_pick, game.pile[0])
-        self.assertEqual(card_to_pick2, game.pile[1])
+        self.assertEqual(joker, game.pile[1])
 
     def test_picking_joker_five_clubs_on_jack_calling_five_negative(self):
         # given
         card_on_pile = Card.to_code(Figure.Queen, Color.Spades)
         card_to_pick0 = Card.to_code(Figure.Jack, Color.Clubs)
-        card_to_pick = Card.to_code(Figure.Joker, Color.Diamonds)
+        joker = Card.to_code(Figure.Joker, Color.Diamonds)
         card_to_pick2 = Card.to_code(Figure.Six, Color.Spades)
 
         # when
@@ -673,10 +673,10 @@ class TestGame(unittest.TestCase):
 
         self.assertEqual(card_to_pick0, game.pile[0])
 
-        game.players[str(game.person_turn)][0] = card_to_pick
+        game.players[str(game.person_turn)][0] = joker
         game.players[str(game.person_turn)][1] = card_to_pick2
         game.handle_players_cards_move(str(game.person_turn),
-                                       {'picked_cards': [card_to_pick2, card_to_pick]})  # idx 0 card + idx 1 joker
+                                       {'picked_cards': [joker, card_to_pick2]})  # idx 0 card + idx 1 joker
 
         # then
         self.assertEqual(card_to_pick0, game.pile[0])
@@ -766,7 +766,7 @@ class TestGame(unittest.TestCase):
         # given
         card_on_pile = Card.to_code(Figure.Queen, Color.Spades)
         card_to_pick0 = Card.to_code(Figure.Jack, Color.Diamonds)
-        card_to_pick1 = Card.to_code(Figure.Joker, Color.Hearts)
+        joker = Card.to_code(Figure.Joker, Color.Hearts)
         card_to_pick2 = Card.to_code(Figure.Jack, Color.Spades)
 
         # when
@@ -781,23 +781,23 @@ class TestGame(unittest.TestCase):
         self.assertEqual(card_to_pick0, game.pile[0])
         self.assertEqual(game.figure_call, Figure.Six)
 
-        game.players[str(game.person_turn)][0] = card_to_pick1
+        game.players[str(game.person_turn)][0] = joker
         game.players[str(game.person_turn)][1] = card_to_pick2
 
         game.handle_players_cards_move(str(game.person_turn),
-                                       {'picked_cards': [card_to_pick2, card_to_pick1],
-                                        'functional': {"call": {"figure": "Five"}}})  # idx 0 card + idx 1 joker
+                                       {'picked_cards': [joker, card_to_pick2],
+                                        'functional': {"call": {"figure": "Five"}}})  # idx 0 joker, idx 1 card
 
         # then
-        self.assertEqual(card_to_pick1, game.pile[0])
-        self.assertEqual(card_to_pick2, game.pile[1])
+        self.assertEqual(card_to_pick2, game.pile[0])
+        self.assertEqual(joker, game.pile[1])
         self.assertEqual(game.figure_call, Figure.Five)
 
     def test_picking_joker_raising_ace(self):
         # given
         card_on_pile = Card.to_code(Figure.Queen, Color.Spades)
         card_to_pick0 = Card.to_code(Figure.Ace, Color.Diamonds)
-        card_to_pick1 = Card.to_code(Figure.Joker, Color.Hearts)
+        joker = Card.to_code(Figure.Joker, Color.Hearts)
         card_to_pick2 = Card.to_code(Figure.Ace, Color.Spades)
 
         # when
@@ -812,23 +812,23 @@ class TestGame(unittest.TestCase):
         self.assertEqual(card_to_pick0, game.pile[0])
         self.assertEqual(Color.Diamonds, game.color_call)
 
-        game.players[str(game.person_turn)][0] = card_to_pick1
+        game.players[str(game.person_turn)][0] = joker
         game.players[str(game.person_turn)][1] = card_to_pick2
 
         game.handle_players_cards_move(str(game.person_turn),
-                                       {'picked_cards': [card_to_pick2, card_to_pick1],
+                                       {'picked_cards': [joker, card_to_pick2],
                                         'functional': {"call": {"color": "Clubs"}}})  # idx 0 card + idx 1 joker
 
         # then
-        self.assertEqual(card_to_pick1, game.pile[0])
-        self.assertEqual(card_to_pick2, game.pile[1])
+        self.assertEqual(card_to_pick2, game.pile[0])
+        self.assertEqual(joker, game.pile[1])
         self.assertEqual(Color.Clubs, game.color_call)
 
     def test_picking_joker_raising_ace_negative(self):
         # given
         card_on_pile = Card.to_code(Figure.Queen, Color.Spades)
         card_to_pick0 = Card.to_code(Figure.Ace, Color.Diamonds)
-        card_to_pick1 = Card.to_code(Figure.Joker, Color.Hearts)
+        joker = Card.to_code(Figure.Joker, Color.Hearts)
         card_to_pick2 = Card.to_code(Figure.Jack, Color.Spades)
 
         # when
@@ -843,11 +843,11 @@ class TestGame(unittest.TestCase):
         self.assertEqual(card_to_pick0, game.pile[0])
         self.assertEqual(game.color_call, Color.Diamonds)
 
-        game.players[str(game.person_turn)][0] = card_to_pick1
+        game.players[str(game.person_turn)][0] = joker
         game.players[str(game.person_turn)][1] = card_to_pick2
 
         game.handle_players_cards_move(str(game.person_turn),
-                                       {'picked_cards': [card_to_pick2, card_to_pick1],
+                                       {'picked_cards': [joker, card_to_pick2],
                                         'functional': {"call": {"figure": "Five"}}})  # idx 0 card + idx 1 joker
 
         # then
@@ -856,14 +856,14 @@ class TestGame(unittest.TestCase):
 
     def test_joker_on_pile_queen_five(self):
         # given
-        card_on_pile1 = Card.to_code(Figure.Joker, Color.Diamonds)
+        joker = Card.to_code(Figure.Joker, Color.Diamonds)
         card_on_pile2 = Card.to_code(Figure.Queen, Color.Spades)
 
         card_to_pick = Card.to_code(Figure.Five, Color.Diamonds)
 
         # when
         game = Game(2)
-        game.pile = [card_on_pile1, card_on_pile2]
+        game.pile = [card_on_pile2, joker]
 
         game.players[str(game.person_turn)][0] = card_to_pick
         game.handle_players_cards_move(str(game.person_turn),
@@ -873,14 +873,14 @@ class TestGame(unittest.TestCase):
 
     def test_put_nine_on_top_of_joker_and_eight(self):
         # given
-        card_on_pile1 = Card.to_code(Figure.Joker, Color.Diamonds)
+        joker = Card.to_code(Figure.Joker, Color.Diamonds)
         card_on_pile2 = Card.to_code(Figure.Eight, Color.Clubs)
 
         card_to_pick = Card.to_code(Figure.Nine, Color.Clubs)
 
         # when
         game = Game(2)
-        game.pile = [card_on_pile1, card_on_pile2]
+        game.pile = [card_on_pile2, joker]
 
         game.players[str(game.person_turn)][0] = card_to_pick
         game.handle_players_cards_move(str(game.person_turn),
@@ -890,14 +890,14 @@ class TestGame(unittest.TestCase):
 
     def test_joker_on_pile_queen_ace_call(self):
         # given
-        card_on_pile1 = Card.to_code(Figure.Joker, Color.Diamonds)
+        joker = Card.to_code(Figure.Joker, Color.Diamonds)
         card_on_pile2 = Card.to_code(Figure.Queen, Color.Spades)
 
         card_to_pick = Card.to_code(Figure.Ace, Color.Diamonds)
 
         # when
         game = Game(2)
-        game.pile = [card_on_pile1, card_on_pile2]
+        game.pile = [card_on_pile2, joker]
 
         game.players[str(game.person_turn)][0] = card_to_pick
         game.handle_players_cards_move(str(game.person_turn),
@@ -909,14 +909,14 @@ class TestGame(unittest.TestCase):
 
     def test_joker_on_pile_queen_jack_call(self):
         # given
-        card_on_pile1 = Card.to_code(Figure.Joker, Color.Diamonds)
+        joker = Card.to_code(Figure.Joker, Color.Diamonds)
         card_on_pile2 = Card.to_code(Figure.Queen, Color.Hearts)
 
         card_to_pick = Card.to_code(Figure.Jack, Color.Clubs)
 
         # when
         game = Game(2)
-        game.pile = [card_on_pile1, card_on_pile2]
+        game.pile = [card_on_pile2, joker]
 
         game.players[str(game.person_turn)][0] = card_to_pick
         game.handle_players_cards_move(str(game.person_turn),
@@ -931,21 +931,21 @@ class TestGame(unittest.TestCase):
         # given
         card_on_pile = Card.to_code(Figure.Queen, Color.Clubs)
 
-        card_to_pick1 = Card.to_code(Figure.Joker, Color.Diamonds)
+        joker = Card.to_code(Figure.Joker, Color.Diamonds)
         card_to_pick2 = Card.to_code(Figure.Jack, Color.Clubs)
 
         # when
         game = Game(2)
         game.pile = [card_on_pile]
 
-        game.players[str(game.person_turn)][0] = card_to_pick1
+        game.players[str(game.person_turn)][0] = joker
         game.players[str(game.person_turn)][1] = card_to_pick2
         game.handle_players_cards_move(str(game.person_turn),
-                                       {'picked_cards': [card_to_pick2, card_to_pick1],
+                                       {'picked_cards': [joker, card_to_pick2],
                                         'functional': {"call": {"figure": "Five"}}})
 
-        self.assertEqual(card_to_pick1, game.pile[0])
-        self.assertEqual(card_to_pick2, game.pile[1])
+        self.assertEqual(card_to_pick2, game.pile[0])
+        self.assertEqual(joker, game.pile[1])
         self.assertEqual(game.figure_call, Figure.Five)
         self.assertIsNone(game.color_call)
 
@@ -953,7 +953,7 @@ class TestGame(unittest.TestCase):
         # given
         card_on_pile = Card.to_code(Figure.Queen, Color.Clubs)
 
-        card_to_pick1 = Card.to_code(Figure.Joker, Color.Hearts)
+        joker = Card.to_code(Figure.Joker, Color.Hearts)
         card_to_pick2 = Card.to_code(Figure.Five, Color.Diamonds)
 
         card_to_pick3 = Card.to_code(Figure.Seven, Color.Diamonds)
@@ -962,14 +962,14 @@ class TestGame(unittest.TestCase):
         game = Game(2)
         game.pile = [card_on_pile]
 
-        game.players[str(game.person_turn)][0] = card_to_pick1
+        game.players[str(game.person_turn)][0] = joker
         game.players[str(game.person_turn)][1] = card_to_pick2
         game.handle_players_cards_move(str(game.person_turn),
-                                       {'picked_cards': [card_to_pick2, card_to_pick1],
+                                       {'picked_cards': [joker, card_to_pick2],
                                         'functional': {"call": {"figure": "Five"}}})
 
-        self.assertEqual(card_to_pick1, game.pile[0])
-        self.assertEqual(card_to_pick2, game.pile[1])
+        self.assertEqual(card_to_pick2, game.pile[0])
+        self.assertEqual(joker, game.pile[1])
 
         self.assertIsNone(game.color_call)
         self.assertIsNone(game.figure_call)
@@ -984,7 +984,7 @@ class TestGame(unittest.TestCase):
         # given
         card_on_pile = Card.to_code(Figure.Queen, Color.Clubs)
 
-        card_to_pick1 = Card.to_code(Figure.Joker, Color.Hearts)
+        joker = Card.to_code(Figure.Joker, Color.Hearts)
         card_to_pick2 = Card.to_code(Figure.Jack, Color.Diamonds)
 
         card_to_pick3 = Card.to_code(Figure.Jack, Color.Spades)
@@ -993,14 +993,14 @@ class TestGame(unittest.TestCase):
         game = Game(2)
         game.pile = [card_on_pile]
 
-        game.players[str(game.person_turn)][0] = card_to_pick1
+        game.players[str(game.person_turn)][0] = joker
         game.players[str(game.person_turn)][1] = card_to_pick2
         game.handle_players_cards_move(str(game.person_turn),
-                                       {'picked_cards': [card_to_pick2, card_to_pick1],
+                                       {'picked_cards': [joker, card_to_pick2],
                                         'functional': {"call": {"figure": "Five"}}})
 
-        self.assertEqual(card_to_pick1, game.pile[0])
-        self.assertEqual(card_to_pick2, game.pile[1])
+        self.assertEqual(card_to_pick2, game.pile[0])
+        self.assertEqual(joker, game.pile[1])
 
         self.assertIsNone(game.color_call)
         self.assertEqual(game.figure_call, Figure.Five)
@@ -1017,7 +1017,7 @@ class TestGame(unittest.TestCase):
         # given
         card_on_pile = Card.to_code(Figure.Queen, Color.Clubs)
 
-        card_to_pick1 = Card.to_code(Figure.Joker, Color.Hearts)
+        joker = Card.to_code(Figure.Joker, Color.Hearts)
         card_to_pick2 = Card.to_code(Figure.Ace, Color.Diamonds)
 
         card_to_pick3 = Card.to_code(Figure.Ace, Color.Spades)
@@ -1026,14 +1026,14 @@ class TestGame(unittest.TestCase):
         game = Game(2)
         game.pile = [card_on_pile]
 
-        game.players[str(game.person_turn)][0] = card_to_pick1
-        game.players[str(game.person_turn)][1] = card_to_pick2
+        game.players[str(game.person_turn)][0] = card_to_pick2
+        game.players[str(game.person_turn)][1] = joker
         game.handle_players_cards_move(str(game.person_turn),
-                                       {'picked_cards': [card_to_pick2, card_to_pick1],
+                                       {'picked_cards': [joker, card_to_pick2],
                                         'functional': {"call": {"color": "Clubs"}}})
 
-        self.assertEqual(card_to_pick1, game.pile[0])
-        self.assertEqual(card_to_pick2, game.pile[1])
+        self.assertEqual(card_to_pick2, game.pile[0])
+        self.assertEqual(joker, game.pile[1])
 
         self.assertIsNone(game.figure_call)
         self.assertEqual(game.color_call, Color.Clubs)
@@ -1051,7 +1051,7 @@ class TestGame(unittest.TestCase):
         card_on_pile = Card.to_code(Figure.Jack, Color.Diamonds)
         current_call = Figure.Six
 
-        card_to_pick1 = Card.to_code(Figure.Joker, Color.Diamonds)
+        joker = Card.to_code(Figure.Joker, Color.Diamonds)
         card_to_pick2 = Card.to_code(Figure.Jack, Color.Clubs)
 
         # when
@@ -1059,14 +1059,14 @@ class TestGame(unittest.TestCase):
         game.pile = [card_on_pile]
         game.figure_call = current_call
 
-        game.players[str(game.person_turn)][0] = card_to_pick1
+        game.players[str(game.person_turn)][0] = joker
         game.players[str(game.person_turn)][1] = card_to_pick2
         game.handle_players_cards_move(str(game.person_turn),
-                                       {'picked_cards': [card_to_pick2, card_to_pick1],
+                                       {'picked_cards': [joker, card_to_pick2],
                                         'functional': {"call": {"figure": "Five"}}})
 
-        self.assertEqual(card_to_pick1, game.pile[0])
-        self.assertEqual(card_to_pick2, game.pile[1])
+        self.assertEqual(card_to_pick2, game.pile[0])
+        self.assertEqual(joker, game.pile[1])
         self.assertEqual(game.figure_call, Figure.Five)
         self.assertIsNone(game.color_call)
 
