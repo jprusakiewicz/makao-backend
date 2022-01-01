@@ -67,13 +67,16 @@ class Game:
 
             if card.is_functional_with_call():
                 if card.is_functional_with_call():
-                    function = player_move["functional"]
-                    if card.figure == Figure.Jack:
-                        call_figure = function["call"]["figure"]
-                        self.handle_jack(call_figure)
-                    elif card.figure == Figure.Ace:
-                        call_color = function["call"]["color"]
-                        self.handle_ace(call_color)
+                    try:
+                        function = player_move["functional"]
+                        if card.figure == Figure.Jack:
+                            call_figure = function["call"]["figure"]
+                            self.handle_jack(call_figure)
+                        elif card.figure == Figure.Ace:
+                            call_color = function["call"]["color"]
+                            self.handle_ace(call_color)
+                    except KeyError:
+                        pass
             else:
                 if card.figure == Figure.Two:
                     self.handle_two()
