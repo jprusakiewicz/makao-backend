@@ -58,12 +58,13 @@ class Game:
 
         if self.is_card_in_players_hand(game_id, picked_cards[0]) \
                 and all([self.can_put_on_pile(card) for card in picked_cards]):
-            self.used_cards.append(picked_cards[0])
-            self.remove_cards_from_players_hand(game_id, picked_cards[0])
+            self.used_cards.append(picked_cards[0])  # joker idx 0
+            self.remove_cards_from_players_hand(game_id, picked_cards[0])  # joker idx 0
 
-            card = Card.from_code(picked_cards[0])
             picked_cards.reverse()
             self.pile = picked_cards
+
+            card = Card.from_code(picked_cards[0])  # if there was joker, take functional card
 
             if card.is_functional_with_call():
                 if card.is_functional_with_call():
@@ -212,7 +213,7 @@ class Game:
     def can_put_on_pile(self, picked_card: str) -> bool:
         can_put = False
         players_card = Card.from_code(picked_card)
-        pile_card = Card.from_code(self.pile[-1])
+        pile_card = Card.from_code(self.pile[0])
 
         if players_card.figure == Figure.Joker:
             can_put = True
