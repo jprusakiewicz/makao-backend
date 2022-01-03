@@ -10,7 +10,7 @@ from app.server_errors import PlayerIdAlreadyInUse, NoRoomWithThisId, RoomIdAlre
 
 class ConnectionManager:
     def __init__(self):
-        self.rooms = [Room(room_id="1")]
+        self.rooms = [Room(room_id="1", number_of_players=2)]
 
     def get_room(self, room_id):
         try:

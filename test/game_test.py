@@ -708,6 +708,60 @@ class TestGame(unittest.TestCase):
         self.assertEqual(card_to_pick2, game.pile[0])
         self.assertEqual(game.color_call, Color.Diamonds)
 
+    def test_raising_ace_with_jack_same_color(self):
+        # given
+        card_on_pile = Card.to_code(Figure.Queen, Color.Spades)
+        card_to_pick = Card.to_code(Figure.Ace, Color.Diamonds)
+        card_to_pick2 = Card.to_code(Figure.Jack, Color.Diamonds)
+
+        # when
+        game = Game(2)
+        game.pile = [card_on_pile]
+
+        game.players[str(game.person_turn)][0] = card_to_pick
+        game.handle_players_cards_move(str(game.person_turn),
+                                       {'picked_cards': [card_to_pick],
+                                        'functional': {"call": {"color": "Clubs"}}})
+
+        self.assertEqual(card_to_pick, game.pile[0])
+        self.assertEqual(game.color_call, Color.Clubs)
+
+        game.players[str(game.person_turn)][0] = card_to_pick2
+        game.handle_players_cards_move(str(game.person_turn),
+                                       {'picked_cards': [card_to_pick2],
+                                        'functional': {"call": {"figure": "Five"}}})
+
+        # then
+        self.assertEqual(card_to_pick, game.pile[0])
+        self.assertEqual(game.color_call, Color.Clubs)
+
+    def test_raising_ace_with_jack_same_color(self):
+        # given
+        card_on_pile = Card.to_code(Figure.Queen, Color.Spades)
+        card_to_pick = Card.to_code(Figure.Ace, Color.Diamonds)
+        card_to_pick2 = Card.to_code(Figure.Jack, Color.Diamonds)
+
+        # when
+        game = Game(2)
+        game.pile = [card_on_pile]
+        # then
+
+        game.players[str(game.person_turn)][0] = card_to_pick2
+        game.handle_players_cards_move(str(game.person_turn),
+                                       {'picked_cards': [card_to_pick2],
+                                        'functional': {"call": {"figure": "Five"}}})
+
+        self.assertEqual(card_to_pick2, game.pile[0])
+        self.assertEqual(game.figure_call, Figure.Five)
+
+        game.players[str(game.person_turn)][0] = card_to_pick
+        game.handle_players_cards_move(str(game.person_turn),
+                                       {'picked_cards': [card_to_pick],
+                                        'functional': {"call": {"color": "Clubs"}}})
+
+        self.assertEqual(card_to_pick2, game.pile[0])
+        self.assertEqual(game.figure_call, Figure.Five)
+
     def test_raising_jack(self):
         # given
         card_on_pile = Card.to_code(Figure.Queen, Color.Spades)
@@ -1069,6 +1123,119 @@ class TestGame(unittest.TestCase):
         self.assertEqual(joker, game.pile[1])
         self.assertEqual(game.figure_call, Figure.Five)
         self.assertIsNone(game.color_call)
+
+    def test_picking_joker_queen(self):
+        # given
+        card_on_pile = Card.to_code(Figure.Queen, Color.Spades)
+        card_to_pick2 = Card.to_code(Figure.Queen, Color.Hearts)
+        joker = Card.to_code(Figure.Joker, Color.Hearts)
+        card_to_pick0 = Card.to_code(Figure.Nine, Color.Hearts)
+
+        # when
+        game = Game(2)
+        game.pile = [card_on_pile]
+
+        game.players[str(game.person_turn)][0] = joker
+        game.players[str(game.person_turn)][1] = card_to_pick2
+
+        game.handle_players_cards_move(str(game.person_turn),
+                                       {'picked_cards': [joker, card_to_pick2]})  # idx 0 joker + idx 1 card
+
+        self.assertEqual(card_to_pick2, game.pile[0])
+        self.assertEqual(joker, game.pile[1])
+        self.assertEqual(game.color_call, None)
+
+        game.players[str(game.person_turn)][0] = card_to_pick0
+        game.handle_players_cards_move(str(game.person_turn),
+                                       {'picked_cards': [card_to_pick0]})
+
+        self.assertEqual(card_to_pick0, game.pile[0])
+        self.assertEqual(game.color_call, None)
+
+    def test_picking_joker_four(self):
+        # given
+        card_on_pile = Card.to_code(Figure.Queen, Color.Spades)
+        card_to_pick2 = Card.to_code(Figure.Four, Color.Hearts)
+        joker = Card.to_code(Figure.Joker, Color.Hearts)
+        card_to_pick0 = Card.to_code(Figure.Three, Color.Hearts)
+
+        # when
+        game = Game(2)
+        game.pile = [card_on_pile]
+
+        game.players[str(game.person_turn)][0] = joker
+        game.players[str(game.person_turn)][1] = card_to_pick2
+
+        game.handle_players_cards_move(str(game.person_turn),
+                                       {'picked_cards': [joker, card_to_pick2]})  # idx 0 joker + idx 1 card
+
+        self.assertEqual(card_to_pick2, game.pile[0])
+        self.assertEqual(joker, game.pile[1])
+        self.assertEqual(game.color_call, None)
+
+        game.players[str(game.person_turn)][0] = card_to_pick0
+        game.handle_players_cards_move(str(game.person_turn),
+                                       {'picked_cards': [card_to_pick0]})
+
+        self.assertEqual(card_to_pick2, game.pile[0])
+        self.assertEqual(game.color_call, None)
+
+    def test_picking_joker_three(self):
+        # given
+        card_on_pile = Card.to_code(Figure.Queen, Color.Spades)
+        card_to_pick2 = Card.to_code(Figure.Three, Color.Hearts)
+        joker = Card.to_code(Figure.Joker, Color.Hearts)
+        card_to_pick0 = Card.to_code(Figure.Ace, Color.Diamonds)
+
+        # when
+        game = Game(2)
+        game.pile = [card_on_pile]
+
+        game.players[str(game.person_turn)][0] = joker
+        game.players[str(game.person_turn)][1] = card_to_pick2
+
+        game.handle_players_cards_move(str(game.person_turn),
+                                       {'picked_cards': [joker, card_to_pick2]})  # idx 0 joker + idx 1 card
+
+        self.assertEqual(card_to_pick2, game.pile[0])
+        self.assertEqual(joker, game.pile[1])
+        self.assertEqual(game.color_call, None)
+
+        game.players[str(game.person_turn)][0] = card_to_pick0
+        game.handle_players_cards_move(str(game.person_turn),
+                                       {'picked_cards': [card_to_pick0],
+                                        'functional': {"call": {"color": "Diamonds"}}})
+
+        self.assertEqual(card_to_pick2, game.pile[0])
+        self.assertEqual(game.color_call, None)
+        self.assertEqual(game.pick_count, 3)
+
+    def test_picking_king_on_top_of_joker_ten(self):
+        # given
+        card_on_pile = Card.to_code(Figure.Queen, Color.Spades)
+        card_to_pick2 = Card.to_code(Figure.Ten, Color.Hearts)
+        joker = Card.to_code(Figure.Joker, Color.Hearts)
+        card_to_pick0 = Card.to_code(Figure.King, Color.Hearts)
+
+        # when
+        game = Game(2)
+        game.pile = [card_on_pile]
+
+        game.players[str(game.person_turn)][0] = joker
+        game.players[str(game.person_turn)][1] = card_to_pick2
+
+        game.handle_players_cards_move(str(game.person_turn),
+                                       {'picked_cards': [joker, card_to_pick2]})  # idx 0 joker + idx 1 card
+
+        self.assertEqual(card_to_pick2, game.pile[0])
+        self.assertEqual(joker, game.pile[1])
+
+        game.players[str(game.person_turn)][0] = card_to_pick0
+        game.handle_players_cards_move(str(game.person_turn),
+                                       {'picked_cards': [card_to_pick0]})
+
+        self.assertEqual(card_to_pick0, game.pile[0])
+
 
 
 if __name__ == '__main__':
